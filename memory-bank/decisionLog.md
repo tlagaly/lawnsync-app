@@ -1,148 +1,72 @@
 # Decision Log
 
-## Project Setup Decisions
+## Authentication Implementation (2025-03-17)
 
-### Database Environment Strategy (2025-03-17)
-**Context**: Need to decide whether to use local PostgreSQL for development or Vercel PostgreSQL from the start.
+### Decision: Use NextAuth.js for Authentication
+- **Context**: Need a secure, flexible authentication system for the application
+- **Decision**: Chose NextAuth.js over custom implementation or other auth libraries
+- **Rationale**:
+  - Built-in support for multiple authentication providers
+  - Strong TypeScript support
+  - Well-maintained and widely used in Next.js applications
+  - Built-in session management
+  - Easy integration with Prisma
 
-**Decision**: Use Vercel PostgreSQL from project initiation for both development and production environments.
+### Decision: Use Credentials Provider
+- **Context**: Need to support email/password authentication
+- **Decision**: Implemented Credentials provider with custom user database
+- **Rationale**:
+  - Gives full control over user data
+  - Allows custom validation logic
+  - Can be extended with additional fields later
+  - Easy to integrate with existing database
 
-**Rationale**:
-- Ensures development/production environment parity
-- Eliminates local database setup requirements
-- Simplifies deployment process
-- Provides consistent database behavior across environments
-- Leverages Vercel's managed database features
+### Decision: Password Hashing with bcrypt
+- **Context**: Need secure password storage
+- **Decision**: Use bcrypt for password hashing
+- **Rationale**:
+  - Industry standard for password hashing
+  - Built-in salt generation
+  - Configurable work factor for future security adjustments
+  - Good balance of security and performance
 
-**Consequences**:
-- Simplified developer onboarding
-- Consistent database behavior
-- Reduced configuration overhead
-- Minor latency in development (acceptable trade-off)
-- Dependency on Vercel's infrastructure
+### Decision: Form Validation with Zod
+- **Context**: Need robust form validation
+- **Decision**: Use Zod for form validation
+- **Rationale**:
+  - TypeScript-first approach
+  - Runtime type checking
+  - Easy integration with React Hook Form
+  - Reusable validation schemas
 
-### Memory Bank Implementation (2025-03-17)
-**Context**: Need for persistent project context and documentation system.
+### Decision: Client/Server Component Split
+- **Context**: Need to handle React hooks and server-side operations
+- **Decision**: Split components into client and server parts
+- **Rationale**:
+  - Better performance through server components
+  - Client components only where needed (forms, interactivity)
+  - Follows Next.js best practices
+  - Clear separation of concerns
 
-**Decision**: Implemented Roo Code Memory Bank system.
+### Decision: Route Protection Strategy
+- **Context**: Need to secure routes based on authentication status
+- **Decision**: Use Next.js middleware with NextAuth
+- **Rationale**:
+  - Centralized route protection
+  - Handles both API and page routes
+  - Easy to extend with additional rules
+  - Efficient redirect handling
 
-**Rationale**:
-- Provides structured project memory
-- Maintains context across sessions
-- Integrates with different development modes
-- Supports systematic documentation
+### Future Considerations
+1. Email verification implementation
+2. Password reset flow
+3. Role-based access control
+4. OAuth provider integration
+5. Session management improvements
 
-**Consequences**:
-- Organized project documentation
-- Clear task tracking
-- Better context preservation
-- Mode-based development workflow
-
-### Technical Stack Selection (2025-03-17)
-
-#### Frontend Framework
-**Decision**: Next.js with Tailwind CSS and shadcn UI
-
-**Rationale**:
-- Server-side rendering for better SEO and performance
-- Built-in routing and API routes
-- Strong TypeScript support
-- Rapid development with Tailwind CSS
-- Consistent UI with shadcn components
-- Excellent developer experience
-
-**Consequences**:
-- Faster development velocity
-- Consistent design system
-- Type-safe development
-- Optimized performance
-
-#### Database & ORM
-**Decision**: PostgreSQL with Prisma ORM
-
-**Rationale**:
-- Type-safe database operations
-- Excellent schema management
-- Robust relational database
-- Strong ecosystem support
-- Vercel PostgreSQL integration
-
-**Consequences**:
-- Type-safe queries
-- Automated migrations
-- Efficient data modeling
-- Simplified database operations
-
-#### Authentication
-**Decision**: NextAuth.js with Prisma adapter
-
-**Rationale**:
-- Seamless Next.js integration
-- Built-in session management
-- Secure authentication flows
-- Database persistence with Prisma
-
-**Consequences**:
-- Secure user authentication
-- Simplified session handling
-- Database-backed sessions
-- Extensible auth system
-
-#### AI Integration
-**Decision**: Claude API for recommendations
-
-**Rationale**:
-- Advanced language understanding
-- Customizable responses
-- Reliable API service
-- Cost-effective solution
-
-**Consequences**:
-- Personalized lawn care advice
-- Context-aware recommendations
-- Scalable AI integration
-
-#### Deployment Strategy
-**Decision**: Vercel with integrated PostgreSQL
-
-**Rationale**:
-- Next.js platform optimization
-- Automated deployments
-- Built-in analytics
-- Edge network distribution
-- Integrated database service
-
-**Consequences**:
-- Simplified deployment process
-- Automatic scaling
-- Performance monitoring
-- Zero-config database
-
-### Development Workflow
-**Status**: Implemented
-
-#### Version Control
-- GitHub repository with branch protection
-- PR templates for consistency
-- Automated CI/CD with GitHub Actions
-- Main and staging branch workflow
-
-#### Testing Strategy
-- Test-driven development approach
-- Unit tests for core functionality
-- Integration tests for critical flows
-- E2E tests for user journeys
-- Continuous testing in CI pipeline
-
-#### Code Quality
-- ESLint for code style
-- Prettier for formatting
-- TypeScript for type safety
-- Husky for pre-commit hooks
-- Automated PR checks
-
-## Notes
-- All core technical decisions documented
-- Implementation plan established
-- Clear development standards set
-- Ready for Day 1 tasks
+### Impact
+- Secure authentication system
+- Type-safe form handling
+- Good developer experience
+- Maintainable codebase
+- Easy to extend with additional features

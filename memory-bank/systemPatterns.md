@@ -1,154 +1,155 @@
 # System Patterns
 
-## Development Patterns
+## Authentication Patterns
 
-### Code Organization
-```
-src/
-├── app/                 # Next.js app directory
-│   ├── api/            # API routes
-│   ├── auth/           # Authentication pages
-│   ├── dashboard/      # Dashboard pages
-│   └── profile/        # Profile pages
-├── components/         # React components
-│   ├── ui/            # shadcn UI components
-│   ├── forms/         # Form components
-│   ├── weather/       # Weather components
-│   └── tasks/         # Task components
-├── lib/               # Utility functions
-├── styles/            # Global styles
-└── types/             # TypeScript types
-```
-
-### Naming Conventions
-- **Files**: kebab-case (e.g., `lawn-profile.tsx`)
-- **Components**: PascalCase (e.g., `WeatherCard`)
-- **Functions**: camelCase (e.g., `getWeatherData`)
-- **Types/Interfaces**: PascalCase (e.g., `LawnProfile`)
-- **Constants**: UPPER_SNAKE_CASE (e.g., `API_ENDPOINT`)
-
-### Error Handling
+### Component Structure
 ```typescript
-try {
-  // Operation that might fail
-  await someOperation()
-} catch (error) {
-  if (error instanceof PrismaError) {
-    // Handle database errors
-  } else if (error instanceof ApiError) {
-    // Handle API errors
-  } else {
-    // Handle unexpected errors
+// Client Components (with "use client" directive)
+- Form components that need React hooks
+- Interactive UI components
+- Components that use browser APIs
+
+// Server Components (default)
+- Layout components
+- Static UI components
+- Data fetching components
+```
+
+### Form Validation Pattern
+```typescript
+// 1. Define Zod schema
+const formSchema = z.object({
+  field: z.string().min(1, "Error message"),
+});
+
+// 2. Use with React Hook Form
+const form = useForm<z.infer<typeof formSchema>>({
+  resolver: zodResolver(formSchema),
+  defaultValues: {
+    field: "",
+  },
+});
+
+// 3. Handle submission
+async function onSubmit(values: z.infer<typeof formSchema>) {
+  try {
+    // API call
+  } catch (error) {
+    // Error handling
   }
 }
 ```
 
-### Testing Patterns
+### Protected Routes Pattern
 ```typescript
-describe('Component/Feature', () => {
-  beforeEach(() => {
-    // Setup
-  })
+// 1. Use middleware for route protection
+export default withAuth(
+  function middleware(req) {
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token,
+    },
+  }
+);
 
-  it('should handle expected behavior', () => {
-    // Test
-  })
-
-  it('should handle error cases', () => {
-    // Test
-  })
-})
+// 2. Define protected paths
+export const config = {
+  matcher: ["/protected-path/:path*"],
+};
 ```
 
-## Architecture Patterns
-
-### Application Structure
-- Server-side rendering for initial loads
-- Client-side navigation for smooth transitions
-- API routes for data operations
-- Protected routes for authenticated content
-
-### Data Flow
-```mermaid
-graph TD
-    A[User Action] --> B[React Component]
-    B --> C[Server Action]
-    C --> D[Prisma Query]
-    D --> E[Database]
-    E --> C
-    C --> B
-    B --> F[UI Update]
-```
-
-### Integration Patterns
-- OpenWeatherMap API wrapper with caching
-- Claude API service for recommendations
-- NextAuth.js for authentication flow
-- Prisma client for database operations
-
-## Design Patterns
-
-### UI/UX Patterns
-- Mobile-first responsive design
-- Progressive enhancement
-- Consistent component spacing
-- Error state handling
-- Loading state indicators
-
-### State Management
-- React Context for global state
-- Local state for component-specific data
-- Server state with React Query
-- Form state with react-hook-form
-
-### API Design
-- RESTful endpoints for CRUD operations
-- Server actions for form submissions
-- Typed API responses
-- Consistent error formats
-
-## Documentation Patterns
-
-### Code Documentation
+### Error Handling Pattern
 ```typescript
-/**
- * Component description
- * @param props - Component props
- * @param props.title - Title description
- * @returns JSX element
- */
+// API Routes
+try {
+  // Operation
+  return NextResponse.json(data, { status: 2xx });
+} catch (error) {
+  if (error instanceof z.ZodError) {
+    return NextResponse.json(
+      { error: error.errors[0].message },
+      { status: 400 }
+    );
+  }
+  return NextResponse.json(
+    { error: "Something went wrong" },
+    { status: 500 }
+  );
+}
+
+// Client Components
+try {
+  // Operation
+} catch (error) {
+  setError(error instanceof Error ? error.message : "Something went wrong");
+} finally {
+  setLoading(false);
+}
 ```
 
-### Commit Messages
-```
-type(scope): description
+### Form Component Pattern
+```typescript
+// 1. Import shadcn components
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 
-[optional body]
-
-[optional footer]
-```
-Types: feat, fix, docs, style, refactor, test, chore
-
-### Pull Requests
-```markdown
-## Description
-Brief description of changes
-
-## Changes
-- Detailed list of changes
-- With supporting context
-
-## Testing
-- [ ] Unit tests
-- [ ] Integration tests
-- [ ] Manual testing steps
-
-## Screenshots
-[If applicable]
+// 2. Structure form fields
+<FormField
+  control={form.control}
+  name="fieldName"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Label</FormLabel>
+      <FormControl>
+        <Input {...field} />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
 ```
 
-## Notes
-- Patterns will be enforced through ESLint/Prettier
-- TypeScript for type safety
-- Automated testing in CI pipeline
-- Regular pattern reviews and updates
+### Loading State Pattern
+```typescript
+// 1. Define loading state
+const [isLoading, setIsLoading] = useState(false);
+
+// 2. Use in forms and buttons
+<Button disabled={isLoading}>
+  {isLoading ? "Loading..." : "Submit"}
+</Button>
+
+// 3. Handle in form fields
+<Input disabled={isLoading} />
+```
+
+## Best Practices
+
+### Authentication
+1. Always hash passwords before storage
+2. Use environment variables for secrets
+3. Implement proper error messages
+4. Add loading states for better UX
+5. Validate inputs on both client and server
+
+### Form Handling
+1. Use Zod for validation
+2. Implement proper error handling
+3. Show loading states during submission
+4. Disable form during submission
+5. Use proper autocomplete attributes
+
+### Component Organization
+1. Keep form logic in separate components
+2. Use client components only when necessary
+3. Leverage server components for static content
+4. Keep authentication logic in dedicated files
+5. Use consistent naming conventions
+
+### Security
+1. Validate all inputs
+2. Protect sensitive routes
+3. Handle errors gracefully
+4. Use secure password storage
+5. Implement proper session management
