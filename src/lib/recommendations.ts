@@ -1,7 +1,10 @@
 import { WeatherData } from "./weather";
 import { LawnProfile } from "@/types/db";
 import { GRASS_TYPE_TASKS, SUN_EXPOSURE_TASKS, TaskRecommendation } from "@/types/recommendations";
-import { claudeService } from "./claude";
+import { claudeService, ClaudeService } from "./claude";
+
+type GrassType = keyof typeof GRASS_TYPE_TASKS;
+type SunExposure = keyof typeof SUN_EXPOSURE_TASKS;
 
 /**
  * Determines if a task is suitable based on weather conditions
@@ -29,8 +32,8 @@ function isTaskSuitable(weather: WeatherData, task: string): boolean {
     case "watering":
       return (
         !isGoodWeather || // Good to water if it's not already raining
-        weather.temperature > 85 || // High temperature needs
-        weather.humidity < 30 // Low humidity needs
+        weather.temperature > 85 || // Water during high temps
+        weather.humidity < 40 // Water during low humidity
       );
     default:
       return isGoodWeather;
@@ -38,24 +41,59 @@ function isTaskSuitable(weather: WeatherData, task: string): boolean {
 }
 
 /**
- * Generates lawn care task recommendations based on profile and weather
+ * Gets task recommendations based on lawn profile and weather
  */
-export async function generateRecommendations(
+export async function getRecommendations(
   profile: LawnProfile,
   weather: WeatherData
 ): Promise<TaskRecommendation[]> {
-  const grassType = profile.grassType.toLowerCase().replace(" ", "-");
-  const sunExposure = profile.sunExposure.toLowerCase().replace(" ", "-");
-  
-  const grassSpecs = GRASS_TYPE_TASKS[grassType as keyof typeof GRASS_TYPE_TASKS];
-  const sunSpecs = SUN_EXPOSURE_TASKS[sunExposure as keyof typeof SUN_EXPOSURE_TASKS];
+  // Get base tasks for grass type and sun exposure
+  const grassTasks = GRASS_TYPE_TASKS[profile.grassType as GrassType] || {};
+  const sunTasks = SUN_EXPOSURE_TASKS[profile.sunExposure as SunExposure] || {};
 
-  const recommendations: TaskRecommendation[] = [];
+  // Create task recommendations
+  const recommendations: TaskRecommendation[] = [
+    {
+      name: "Mowing",
+      description: `Mow at height: ${grassTasks.mowingHeight || "2-3 inches"}. ${sunTasks.mowingTiming || ""}`,
+      priority: "high",
+      conditions: [
+        {
+          met: isTaskSuitable(weather, "mowing"),
+          text: "Weather conditions suitable for mowing",
+        },
+      ],
+    },
+    {
+      name: "Watering",
+      description: `Water ${grassTasks.wateringFrequency || "1 inch per week"}. ${sunTasks.wateringAdjustment || ""}`,
+      priority: "medium",
+      conditions: [
+        {
+          met: isTaskSuitable(weather, "watering"),
+          text: "Weather conditions suitable for watering",
+        },
+      ],
+    },
+    {
+      name: "Fertilizing",
+      description: `Follow schedule: ${grassTasks.fertilizingSchedule || "3-4 times per year"}. ${sunTasks.fertilizingNote || ""}`,
+      priority: "low",
+      conditions: [
+        {
+          met: isTaskSuitable(weather, "fertilizing"),
+          text: "Weather conditions suitable for fertilizing",
+        },
+      ],
+    },
+  ];
 
-  // Get AI insights for the current conditions
-  let aiAdvice: string;
+  // Get AI recommendations if available
   try {
-    aiAdvice = await claudeService.generateRecommendation(
+    // Get or create Claude service
+    const service = claudeService || new ClaudeService(process.env.CLAUDE_API_KEY || "");
+    
+    const aiAdvice = await service.generateRecommendation(
       {
         size: profile.size,
         grassType: profile.grassType,
@@ -69,99 +107,16 @@ export async function generateRecommendations(
       }
     );
 
-    // Parse AI response into structured insights
-    const aiInsights = {
-      personalizedTips: aiAdvice
-        .split("\n")
-        .filter(line => line.trim().startsWith("-") || line.trim().startsWith("*"))
-        .map(line => line.trim().replace(/^[-*]\s+/, "")),
-      seasonalAdvice: aiAdvice
-        .split("\n")
-        .find(line => line.toLowerCase().includes("season") || line.toLowerCase().includes("weather"))
-        ?.trim() || "",
-    };
-
-    // Mowing recommendation
-    if (isTaskSuitable(weather, "mowing")) {
-      recommendations.push({
-        name: "Mowing",
-        description: `Mow at ${grassSpecs.mowingHeight} height. ${sunSpecs.mowingTiming}.`,
-        priority: "high",
-        conditions: [
-          { met: weather.temperature >= 50, text: "Temperature above 50°F" },
-          { met: weather.temperature <= 85, text: "Temperature below 85°F" },
-          { met: weather.windSpeed < 15, text: "Wind speed below 15 mph" },
-          { met: !weather.condition.toLowerCase().includes("rain"), text: "No rain conditions" },
-        ],
-        products: [
-          {
-            name: "Sharp Mower Blades",
-            type: "equipment",
-            description: "Ensure clean cuts and healthy grass",
-          }
-        ],
-        aiInsights,
-      });
-    }
-
-    // Watering recommendation
-    const needsWatering = isTaskSuitable(weather, "watering");
-    if (needsWatering) {
-      recommendations.push({
-        name: "Watering",
-        description: `Water ${grassSpecs.wateringFrequency}. ${sunSpecs.wateringAdjustment}.`,
-        priority: weather.temperature > 85 ? "high" : "medium",
-        conditions: [
-          { met: weather.temperature > 85, text: "High temperature stress" },
-          { met: weather.humidity < 30, text: "Low humidity conditions" },
-          { met: !weather.condition.toLowerCase().includes("rain"), text: "No rain in forecast" },
-        ],
-        aiInsights,
-      });
-    }
-
-    // Fertilizing recommendation
-    if (isTaskSuitable(weather, "fertilizing")) {
-      recommendations.push({
-        name: "Fertilizing",
-        description: `Follow ${grassSpecs.fertilizingSchedule}. ${sunSpecs.fertilizingNote}.`,
-        priority: "medium",
-        conditions: [
-          { met: weather.temperature >= 60, text: "Temperature above 60°F" },
-          { met: weather.windSpeed < 10, text: "Low wind conditions" },
-          { met: !weather.condition.toLowerCase().includes("rain"), text: "No immediate rain" },
-        ],
-        products: [
-          {
-            name: "Balanced Fertilizer",
-            type: "fertilizer",
-            description: "NPK ratio suitable for your grass type",
-          }
-        ],
-        aiInsights,
-      });
-    }
+    // Add AI insights to each recommendation
+    return recommendations.map(rec => ({
+      ...rec,
+      aiInsights: {
+        personalizedTips: [aiAdvice],
+        seasonalAdvice: aiAdvice,
+      },
+    }));
   } catch (error) {
-    console.error("Error getting AI recommendations:", error);
-    // Continue with basic recommendations if AI fails
+    console.error('Failed to get AI recommendations:', error);
+    return recommendations;
   }
-
-  return recommendations;
-}
-
-/**
- * Calculates the next scheduled task based on lawn profile and current date
- */
-export function getNextScheduledTask(profile: LawnProfile): { name: string; dueDate: string } | null {
-  const now = new Date();
-  const grassType = profile.grassType.toLowerCase().replace(" ", "-");
-  const specs = GRASS_TYPE_TASKS[grassType as keyof typeof GRASS_TYPE_TASKS];
-  
-  // Simple scheduling logic - can be enhanced with more sophisticated calculations
-  const nextMowing = new Date(now.setDate(now.getDate() + 7)); // Weekly mowing
-  
-  return {
-    name: "Regular Mowing",
-    dueDate: nextMowing.toLocaleDateString(),
-  };
 }

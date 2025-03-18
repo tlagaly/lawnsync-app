@@ -9,11 +9,8 @@ export class ClaudeService {
   private apiKey: string;
   private defaultModel: string;
 
-  constructor(apiKey: string, model = "claude-3-sonnet-20240229") {
-    if (!apiKey) {
-      throw new Error("API key is required");
-    }
-    this.apiKey = apiKey;
+  constructor(apiKey?: string, model = "claude-3-sonnet-20240229") {
+    this.apiKey = apiKey || "";
     this.defaultModel = model;
   }
 
@@ -33,6 +30,11 @@ export class ClaudeService {
       weather: string;
     }
   ): Promise<string> {
+    // Return default message if no API key
+    if (!this.apiKey) {
+      return "AI recommendations not available - API key not configured";
+    }
+
     // Validate input
     if (profile.size <= 0) {
       throw new Error("Invalid lawn size");
@@ -64,6 +66,10 @@ Please provide specific recommendations for:
    * Send a message to Claude API
    */
   private async sendMessage(content: string): Promise<ClaudeResponse> {
+    if (!this.apiKey) {
+      throw new Error("API key not configured");
+    }
+
     const request: ClaudeRequest = {
       model: this.defaultModel,
       messages: [{ role: "user", content }],
@@ -129,5 +135,5 @@ Please provide specific recommendations for:
 
 // Export singleton instance only in non-test environments
 export const claudeService = process.env.NODE_ENV !== 'test' 
-  ? new ClaudeService(process.env.CLAUDE_API_KEY || "")
+  ? new ClaudeService(process.env.CLAUDE_API_KEY)
   : undefined;

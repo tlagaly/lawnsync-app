@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { sendNotification } from '@/lib/notifications';
+import { sendNotification, NotificationType } from '@/lib/notifications';
 import { renderEmailTemplate } from '@/lib/email-renderer';
 import {
   isTaskReminderData,
@@ -9,7 +9,6 @@ import {
   isWeeklySummaryData,
   isCareRecommendationsData,
 } from '@/lib/email-renderer';
-import type { NotificationType } from '@/types/notifications';
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,15 +23,17 @@ export async function POST(req: NextRequest) {
 
     // Parse request body
     const body = await req.json();
-    const { type, data } = body;
+    const { type: rawType, data } = body;
 
     // Validate notification type
-    if (!isValidNotificationType(type)) {
+    if (!isValidNotificationType(rawType)) {
       return NextResponse.json(
         { error: 'Invalid notification type' },
         { status: 400 }
       );
     }
+
+    const type = rawType as NotificationType;
 
     // Validate data based on notification type
     if (!isValidData(type, data)) {
@@ -46,12 +47,7 @@ export async function POST(req: NextRequest) {
     const emailContent = await renderEmailTemplate({ type, data });
 
     // Send notification
-    const result = await sendNotification(session.user.id, type, {
-      to: session.user.email!,
-      subject: getSubject(type, data),
-      content: emailContent,
-      metadata: { test: true },
-    });
+    const result = await sendNotification(type, data, session.user.email!);
 
     return NextResponse.json({ success: true, result });
   } catch (error) {
