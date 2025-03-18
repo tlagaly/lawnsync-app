@@ -3,10 +3,29 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   transpilePackages: ['@radix-ui/react-label', '@radix-ui/react-select', '@radix-ui/react-tabs'],
+  images: {
+    domains: ['localhost'],
+  },
+  experimental: {
+    optimizeCss: true,
+  },
   webpack: (config) => {
     config.module.rules.push({
       test: /\.css$/,
-      use: ['style-loader', 'css-loader', 'postcss-loader'],
+      use: [
+        'style-loader',
+        {
+          loader: 'css-loader',
+          options: {
+            importLoaders: 1,
+            modules: {
+              auto: true,
+              localIdentName: '[local]_[hash:base64:5]',
+            },
+          },
+        },
+        'postcss-loader',
+      ],
     });
     return config;
   },

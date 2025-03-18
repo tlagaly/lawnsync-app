@@ -1,48 +1,68 @@
+@import "react-day-picker/dist/style.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import "react-day-picker/dist/style.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #000000;
-  --font-geist-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  --font-geist-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --sidebar-ring: #e5e7eb;
-  --sidebar-border: #e5e7eb;
-  --sidebar-accent-foreground: #111827;
-  --sidebar-accent: #f3f4f6;
-  --sidebar-primary-foreground: #111827;
-  --sidebar-primary: #f3f4f6;
-  --sidebar-foreground: #374151;
-  --sidebar: #ffffff;
-  --chart-5: #4f46e5;
-  --chart-4: #6366f1;
-  --chart-3: #818cf8;
-  --chart-2: #a5b4fc;
-  --chart-1: #c7d2fe;
-  --ring: #e5e7eb;
-  --input: #f3f4f6;
-  --border: #e5e7eb;
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #000000;
+    --font-geist-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    --font-geist-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --sidebar-ring: #e5e7eb;
+    --sidebar-border: #e5e7eb;
+    --sidebar-accent-foreground: #111827;
+    --sidebar-accent: #f3f4f6;
+    --sidebar-primary-foreground: #111827;
+    --sidebar-primary: #f3f4f6;
+    --sidebar-foreground: #374151;
+    --sidebar: #ffffff;
+    --chart-5: #4f46e5;
+    --chart-4: #6366f1;
+    --chart-3: #818cf8;
+    --chart-2: #a5b4fc;
+    --chart-1: #c7d2fe;
+    --ring: #e5e7eb;
+    --input: #f3f4f6;
+    --border: #e5e7eb;
+  }
+
+  .dark {
+    --background: #111827;
+    --foreground: #ffffff;
+    --sidebar-ring: #1f2937;
+    --sidebar-border: #1f2937;
+    --sidebar-accent-foreground: #f3f4f6;
+    --sidebar-accent: #1f2937;
+    --sidebar-primary-foreground: #f3f4f6;
+    --sidebar-primary: #1f2937;
+    --sidebar-foreground: #d1d5db;
+    --sidebar: #111827;
+    --chart-5: #4f46e5;
+    --chart-4: #6366f1;
+    --chart-3: #818cf8;
+    --chart-2: #a5b4fc;
+    --chart-1: #c7d2fe;
+    --ring: #1f2937;
+    --input: #1f2937;
+    --border: #1f2937;
+  }
 }
 
-.dark {
-  --background: #111827;
-  --foreground: #ffffff;
-  --sidebar-ring: #1f2937;
-  --sidebar-border: #1f2937;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-accent: #1f2937;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-primary: #1f2937;
-  --sidebar-foreground: #9ca3af;
-  --sidebar: #111827;
-  --chart-5: #6366f1;
-  --chart-4: #818cf8;
-  --chart-3: #a5b4fc;
-  --chart-2: #c7d2fe;
-  --chart-1: #e0e7ff;
-  --ring: #1f2937;
-  --input: #1f2937;
-  --border: #1f2937;
+@layer components {
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-6;
+  }
+
+  .button {
+    @apply px-4 py-2 rounded-md font-medium transition-colors;
+  }
+
+  .button-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+
+  .input {
+    @apply px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500;
+  }
 }
