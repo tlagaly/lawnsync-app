@@ -3,79 +3,129 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Used for direct connection, bypassing pooling
 }
 
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type             String
-  provider         String
-  providerAccountId String
-  refresh_token    String? @db.Text
-  access_token     String? @db.Text
-  expires_at       Int?
-  token_type       String?
-  scope            String?
-  id_token         String? @db.Text
-  session_state    String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
+enum TaskPriority {
+  high
+  medium
+  low
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+enum TaskStatus {
+  pending
+  completed
+  skipped
+  rescheduled
+}
+
+enum NotificationType {
+  task_reminder
+  weather_alert
+  weekly_summary
+  care_recommendation
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  password      String?   // Made optional for development
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  accounts      Account[]
-  sessions      Session[]
+  id                    String                  @id @default(cuid())
+  name                  String?
+  email                 String                  @unique
+  password              String
+  lawnProfile           LawnProfile?
+  notificationPrefs     NotificationPreferences?
+  notificationHistory   NotificationHistory[]
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
 }
 
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
+model NotificationPreferences {
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  user                  User      @relation(fields: [userId], references: [id])
+  taskReminders         Boolean   @default(true)
+  weatherAlerts         Boolean   @default(true)
+  weeklySummary         Boolean   @default(true)
+  careRecommendations   Boolean   @default(true)
+  timezone              String    @default("UTC")
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
 
-  @@unique([identifier, token])
+model NotificationHistory {
+  id          String            @id @default(cuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id])
+  type        NotificationType
+  status      String            // sent, failed, delivered
+  subject     String
+  content     String
+  metadata    Json?             // Additional context (task ID, weather data, etc.)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 }
 
 model LawnProfile {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  location    String
-  grassType   String
-  lawnSize    Float
-  soilType    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String           @id @default(cuid())
+  size           Float            // Size in square feet
+  grassType      String           // Type of grass
+  sunExposure    String           // Full sun, partial shade, etc.
+  location       String           // City/ZIP for weather
+  user           User             @relation(fields: [userId], references: [id])
+  userId         String           @unique
+  scheduledTasks ScheduledTask[]  // Tasks scheduled for this lawn
+  taskHistory    TaskHistory[]    // Completed tasks for this lawn
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 }
 
+// Define maintenance tasks that can be scheduled
 model MaintenanceTask {
-  id          String   @id @default(cuid())
-  email       String
-  title       String
-  description String
-  dueDate     DateTime
-  completed   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String           @id @default(cuid())
+  name            String          // Task name (e.g., "Mow Lawn")
+  description     String          // Detailed task description
+  estimatedTime   Int             // Estimated time in minutes
+  priority        TaskPriority    // high, medium, low
+  weatherFactors  Json            // Weather conditions that affect this task
+  seasonality     String[]        // Seasons when this task is relevant
+  products        Json?           // Recommended products for this task
+  scheduledTasks  ScheduledTask[] // Instances of this task being scheduled
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+// Instances of tasks scheduled for specific dates
+model ScheduledTask {
+  id               String          @id @default(cuid())
+  task            MaintenanceTask @relation(fields: [taskId], references: [id])
+  taskId          String
+  lawnProfile     LawnProfile     @relation(fields: [lawnProfileId], references: [id])
+  lawnProfileId   String
+  scheduledDate   DateTime        // When the task should be done
+  status          TaskStatus      // pending, completed, skipped, rescheduled
+  weatherAdjusted Boolean         @default(false) // If schedule was adjusted for weather
+  notes           String?         // Any special instructions or notes
+  history         TaskHistory?    // Link to history if completed
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+// History of completed tasks
+model TaskHistory {
+  id              String        @id @default(cuid())
+  scheduledTask   ScheduledTask @relation(fields: [scheduledTaskId], references: [id])
+  scheduledTaskId String        @unique
+  lawnProfile     LawnProfile   @relation(fields: [lawnProfileId], references: [id])
+  lawnProfileId   String
+  completedDate   DateTime      // When the task was actually completed
+  duration        Int?          // How long it took in minutes
+  notes           String?       // Notes about the completion
+  weather         Json          // Weather conditions when completed
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }

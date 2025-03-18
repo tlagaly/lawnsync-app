@@ -1,9 +1,10 @@
-import { ClientProviders } from '@/components/providers/client-providers';
-import './globals.css';
+import type { Metadata } from "next";
+import "./globals.css";
+import ClientProviders from "@/components/providers/client-providers";
 
-export const metadata = {
-  title: 'LawnSync',
-  description: 'Smart lawn care management',
+export const metadata: Metadata = {
+  title: "LawnSync",
+  description: "AI-driven lawn care management",
 };
 
 export default function RootLayout({
@@ -13,10 +14,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <ClientProviders>
-          {children}
-        </ClientProviders>
+      <body className="font-sans">
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );

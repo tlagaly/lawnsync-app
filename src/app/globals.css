@@ -1,14 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "react-day-picker/dist/style.css";
 
 @plugin "tailwindcss-animate";
-
-@layer base {
-  .font-inter {
-    font-family: 'Inter', sans-serif;
-  }
-}
 
 @custom-variant dark (&:is(.dark *));
 

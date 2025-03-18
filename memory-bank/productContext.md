@@ -1,61 +1,8 @@
 # Product Context
 
-## Caching Layer
-
-### Overview
-The caching system improves performance and reduces API calls by storing recommendations with a time-to-live (TTL) mechanism. It uses in-memory storage with proper type safety and cache invalidation.
-
-### Components
-
-#### 1. Cache Service
-- **Location:** src/lib/cache.ts
-- **Purpose:** Manages recommendation caching
-- **Features:**
-  - In-memory storage with Map
-  - TTL-based cache invalidation
-  - Type-safe operations
-  - Cache key generation
-  - Cache hit/miss handling
-  - Configurable TTL (default 30 minutes)
-
-#### 2. Integration Points
-- **Primary:** src/app/api/recommendations/route.ts
-- **Features:**
-  - Cache-control headers
-  - Cache key generation
-  - Error handling
-  - Cache invalidation
-  - TTL management
-
-### Configuration
-```env
-# Cache Configuration
-CACHE_TTL=1800000  # 30 minutes in milliseconds
-```
-
-### Development Workflow
-1. Cache Configuration:
-   - Set TTL as needed
-   - Configure cache size limits
-   - Set up monitoring
-2. Test caching:
-   - Verify cache hits/misses
-   - Check invalidation
-   - Test error handling
-3. Monitor cache performance
-4. Optimize based on usage
-
-### Production Workflow
-1. Monitor cache size
-2. Track hit/miss rates
-3. Adjust TTL based on data freshness needs
-4. Clear cache when needed
-5. Monitor memory usage
-
 ## Claude AI Integration
 
 ### Overview
-=======
 The Claude AI integration enhances our recommendation system by providing personalized lawn care advice based on lawn profiles and current conditions. It uses a hybrid approach that combines rule-based recommendations with AI-powered insights.
 
 ### Components
@@ -65,12 +12,9 @@ The Claude AI integration enhances our recommendation system by providing person
 - **Purpose:** Handles all Claude API interactions
 - **Features:**
   - Environment-aware configuration
-  - Enhanced error handling with retries
+  - Error handling with retries
   - Type-safe request/response handling
   - Prompt template management
-  - Configuration validation
-  - User-friendly setup instructions
-  - Graceful service degradation
 
 #### 2. Types and Interfaces
 - **Location:** src/types/claude.ts
@@ -99,18 +43,10 @@ CLAUDE_API_KEY=your_development_key
 ```
 
 ### Development Workflow
-1. Configure environment variables:
-   - Set CLAUDE_API_KEY for development
-   - Verify key format and permissions
-2. Test recommendations locally:
-   - Check configuration feedback
-   - Verify setup instructions display
-   - Test error message handling
+1. Use development API key
+2. Test recommendations locally
 3. Verify AI insights integration
-4. Check error handling:
-   - Test missing API key scenarios
-   - Verify configuration error UI
-   - Test retry functionality
+4. Check error handling
 5. Monitor API usage
 
 ### Production Workflow

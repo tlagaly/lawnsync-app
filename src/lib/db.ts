@@ -1,13 +1,27 @@
 import { PrismaClient } from '@prisma/client';
+import type { DatabaseClient } from '@/types/db';
+
+const prismaClientSingleton = () => {
+  return new PrismaClient({
+    // Log queries only in development
+    log: process.env.NODE_ENV === 'development' ? ['query'] : [],
+    // Configure connection pool
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL
+      }
+    }
+  }) as DatabaseClient;
+};
 
 declare global {
-  var prisma: PrismaClient | undefined;
+  var prisma: DatabaseClient | undefined;
 }
 
-export const prisma = global.prisma || new PrismaClient();
+const prisma = global.prisma ?? prismaClientSingleton();
 
 if (process.env.NODE_ENV !== 'production') {
   global.prisma = prisma;
 }
 
-export default prisma;
+export const db = prisma;
