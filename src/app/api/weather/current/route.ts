@@ -1,5 +1,5 @@
 import { getCurrentWeather } from "@/lib/weather";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 const querySchema = z.object({
@@ -9,11 +9,12 @@ const querySchema = z.object({
     .regex(/^[a-zA-Z0-9\s,-]+$/, "Invalid location format"),
 });
 
-export async function GET(request: Request) {
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
     const result = querySchema.safeParse({
-      location: searchParams.get("location"),
+      location: request.nextUrl.searchParams.get("location"),
     });
 
     if (!result.success) {
@@ -31,7 +32,7 @@ export async function GET(request: Request) {
     if (error instanceof Error && error.message === 'OpenWeatherMap API key not configured') {
       return NextResponse.json(
         { error: "Weather service configuration error" },
-        { status: 500 }
+        { status: 503 }
       );
     }
 
