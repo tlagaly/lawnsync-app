@@ -128,6 +128,6 @@ Please provide specific recommendations for:
 }
 
 // Export singleton instance only in non-test environments
-export const claudeService = process.env.NODE_ENV !== 'test' 
-  ? new ClaudeService(process.env.CLAUDE_API_KEY || "")
+export const claudeService = process.env.NODE_ENV !== 'test' && process.env.CLAUDE_API_KEY
+  ? new ClaudeService(process.env.CLAUDE_API_KEY)
   : undefined;

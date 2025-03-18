@@ -1,9 +1,9 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-async function setupTestUser() {
+export async function setupTestUser() {
   try {
     // Create test user
     const hashedPassword = await bcrypt.hash('test123', 10);
@@ -46,9 +46,4 @@ async function setupTestUser() {
   }
 }
 
-setupTestUser()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+// Export the function for use in API routes and scripts

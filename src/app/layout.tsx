@@ -1,13 +1,9 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import ClientProviders from "@/components/providers/client-providers";
+import { ClientProviders } from '@/components/providers/client-providers';
+import './globals.css';
 
-const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "LawnSync",
-  description: "AI-driven lawn care management",
+export const metadata = {
+  title: 'LawnSync',
+  description: 'Smart lawn care management',
 };
 
 export default function RootLayout({
@@ -17,8 +13,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <ClientProviders>{children}</ClientProviders>
+      <body>
+        <ClientProviders>
+          {children}
+        </ClientProviders>
       </body>
     </html>
   );
