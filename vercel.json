@@ -8,13 +8,5 @@
     "deploymentEnabled": {
       "main": true
     }
-  },
-  "env": {
-    "NEXTAUTH_URL": "https://lawnsync-app.vercel.app",
-    "NEXTAUTH_SECRET": "@nextauth_secret",
-    "DATABASE_URL": "@database_url",
-    "OPENWEATHER_API_KEY": "@openweather_api_key",
-    "RESEND_API_KEY": "@resend_api_key",
-    "ANTHROPIC_API_KEY": "@anthropic_api_key"
   }
 }
