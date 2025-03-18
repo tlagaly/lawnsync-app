@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { scheduledTaskSchema, TaskStatus } from "@/types/maintenance";
+import { scheduledTaskSchema, TaskStatus, TaskPriority } from "@/types/maintenance";
 import { ZodError } from "zod";
 import { Prisma } from "@prisma/client";
 import { getCurrentWeather, getForecast } from "@/lib/weather";
@@ -109,18 +109,24 @@ export async function POST(request: Request) {
     let weatherAdjusted = false;
     let finalScheduledDate = scheduledDate;
 
+    // Convert Prisma TaskPriority to our custom TaskPriority type
+    const taskWithCustomPriority = {
+      ...task,
+      priority: task.priority as TaskPriority,
+    };
+
     const partialTask = {
       ...validatedData,
       status: TaskStatus.pending,
       id: '',
-      task,
+      task: taskWithCustomPriority,
       weatherAdjusted: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    if (shouldRescheduleTask(task, partialTask, weather)) {
-      const nextDate = getNextAvailableDate(task, scheduledDate, forecast);
+    if (shouldRescheduleTask(taskWithCustomPriority, partialTask, weather)) {
+      const nextDate = getNextAvailableDate(taskWithCustomPriority, scheduledDate, forecast);
       if (nextDate) {
         finalScheduledDate = nextDate;
         weatherAdjusted = true;
