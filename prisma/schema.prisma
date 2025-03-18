@@ -10,11 +10,85 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum TaskPriority {
+  high
+  medium
+  low
+}
+
+enum TaskStatus {
+  pending
+  completed
+  skipped
+  rescheduled
+}
+
 model User {
-  id            String    @id @default(cuid())
+  id            String      @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String      @unique
   password      String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  lawnProfile   LawnProfile?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model LawnProfile {
+  id             String           @id @default(cuid())
+  size           Float            // Size in square feet
+  grassType      String           // Type of grass
+  sunExposure    String           // Full sun, partial shade, etc.
+  location       String           // City/ZIP for weather
+  user           User             @relation(fields: [userId], references: [id])
+  userId         String           @unique
+  scheduledTasks ScheduledTask[]  // Tasks scheduled for this lawn
+  taskHistory    TaskHistory[]    // Completed tasks for this lawn
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+// Define maintenance tasks that can be scheduled
+model MaintenanceTask {
+  id              String           @id @default(cuid())
+  name            String          // Task name (e.g., "Mow Lawn")
+  description     String          // Detailed task description
+  estimatedTime   Int             // Estimated time in minutes
+  priority        TaskPriority    // high, medium, low
+  weatherFactors  Json            // Weather conditions that affect this task
+  seasonality     String[]        // Seasons when this task is relevant
+  products        Json?           // Recommended products for this task
+  scheduledTasks  ScheduledTask[] // Instances of this task being scheduled
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+// Instances of tasks scheduled for specific dates
+model ScheduledTask {
+  id               String          @id @default(cuid())
+  task            MaintenanceTask @relation(fields: [taskId], references: [id])
+  taskId          String
+  lawnProfile     LawnProfile     @relation(fields: [lawnProfileId], references: [id])
+  lawnProfileId   String
+  scheduledDate   DateTime        // When the task should be done
+  status          TaskStatus      // pending, completed, skipped, rescheduled
+  weatherAdjusted Boolean         @default(false) // If schedule was adjusted for weather
+  notes           String?         // Any special instructions or notes
+  history         TaskHistory?    // Link to history if completed
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+// History of completed tasks
+model TaskHistory {
+  id              String        @id @default(cuid())
+  scheduledTask   ScheduledTask @relation(fields: [scheduledTaskId], references: [id])
+  scheduledTaskId String        @unique
+  lawnProfile     LawnProfile   @relation(fields: [lawnProfileId], references: [id])
+  lawnProfileId   String
+  completedDate   DateTime      // When the task was actually completed
+  duration        Int?          // How long it took in minutes
+  notes           String?       // Notes about the completion
+  weather         Json          // Weather conditions when completed
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }

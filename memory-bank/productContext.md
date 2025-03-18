@@ -25,8 +25,9 @@ Lawn Genius is a lawn care management application that helps homeowners maintain
 ### Backend
 - ORM: Prisma
 - Database: PostgreSQL
-- Authentication: NextAuth.js
-- API: Server Actions
+- Authentication: NextAuth.js with auto-login system
+- API: Server Actions and setup endpoints
+- Development Tools: Environment-aware utilities
 
 ### External Integrations
 - AI: Claude API for personalized recommendations
@@ -57,6 +58,12 @@ Lawn Genius is a lawn care management application that helps homeowners maintain
    - Task completion tracking
    - Weather-aware scheduling
    - Basic task history
+   - Interactive calendar view
+     * Priority-based task indicators
+     * Weather warning integration
+     * Task status visualization
+     * Date-based task filtering
+     * Mobile-responsive design
 
 5. Product Recommendations
    - Generic product catalog
@@ -77,6 +84,9 @@ Lawn Genius is a lawn care management application that helps homeowners maintain
 - Type-safe database operations
 - Continuous deployment workflow
 - Test-driven development approach
+- Environment-aware development features
+- Automated test user management
+- Streamlined local development flow
 
 ## Environment Setup
 - Production: app.lawnsync.ai
