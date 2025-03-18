@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { scheduledTaskSchema, TaskStatus, TaskPriority } from "@/types/maintenance";
+import { scheduledTaskSchema, TaskStatus, TaskPriority, MaintenanceTaskResponse } from "@/types/maintenance";
 import { ZodError } from "zod";
 import { Prisma } from "@prisma/client";
 import { getCurrentWeather, getForecast } from "@/lib/weather";
 import { shouldRescheduleTask, getNextAvailableDate } from "@/lib/maintenance";
+
+type Season = "spring" | "summer" | "fall" | "winter";
 
 // Type guards
 function isZodError(error: unknown): error is ZodError {
@@ -15,6 +17,21 @@ function isZodError(error: unknown): error is ZodError {
 
 function isPrismaError(error: unknown): error is Prisma.PrismaClientKnownRequestError {
   return error instanceof Prisma.PrismaClientKnownRequestError;
+}
+
+function isValidSeason(season: string): season is Season {
+  return ["spring", "summer", "fall", "winter"].includes(season);
+}
+
+// Transform Prisma product to our expected type
+function transformProducts(products: any): { name: string; description: string; link?: string }[] | undefined {
+  if (!products) return undefined;
+  const productArray = products as any[];
+  return productArray.map(p => ({
+    name: p.name,
+    description: p.amount || 'No description provided', // Use amount as description or provide default
+    link: p.link
+  }));
 }
 
 // Get scheduled tasks for a lawn profile
@@ -109,10 +126,22 @@ export async function POST(request: Request) {
     let weatherAdjusted = false;
     let finalScheduledDate = scheduledDate;
 
-    // Convert Prisma TaskPriority to our custom TaskPriority type
-    const taskWithCustomPriority = {
-      ...task,
+    // Convert Prisma task to our expected type structure
+    const taskWithCustomPriority: MaintenanceTaskResponse = {
+      id: task.id,
+      name: task.name,
+      description: task.description,
+      estimatedTime: task.estimatedTime,
       priority: task.priority as TaskPriority,
+      weatherFactors: task.weatherFactors as {
+        temperature?: { min: number; max: number };
+        precipitation?: { chance: number; intensity: number };
+        wind?: { speed: number };
+      },
+      seasonality: (task.seasonality as string[]).filter(isValidSeason) as Season[],
+      products: transformProducts(task.products),
+      createdAt: task.createdAt.toISOString(),
+      updatedAt: task.updatedAt.toISOString(),
     };
 
     const partialTask = {
