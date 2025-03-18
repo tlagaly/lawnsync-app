@@ -1,249 +1,169 @@
-# Weather Integration Test Strategy
+# Claude Integration Test Strategy
 
 ## Overview
-This document outlines the testing strategy for the weather integration feature, including test coverage goals, test cases, and required infrastructure.
+This test strategy outlines the approach for testing the Claude AI integration in the LawnSync application. The strategy focuses on ensuring reliable AI-enhanced recommendations while maintaining the fallback to rule-based recommendations.
 
-## Test Infrastructure
-Required packages:
-- jest
-- @testing-library/react
-- @testing-library/jest-dom
-- msw (Mock Service Worker)
-- @testing-library/user-event
+## Test Scope
 
-## Test Coverage Goals
-- Unit Tests: 90% coverage
-- Integration Tests: 80% coverage
-- Component Tests: 85% coverage
+### Components to Test
+1. Claude Service (`src/lib/claude.ts`)
+2. Enhanced Recommendations (`src/lib/recommendations.ts`)
+3. Type Definitions (`src/types/claude.ts`)
 
-## Test Categories
+### Test Types
+1. Unit Tests
+2. Integration Tests
+3. Error Handling Tests
+4. End-to-End Tests
 
-### 1. Unit Tests
+## Test Plan
 
-#### Weather Service (`src/lib/weather.ts`)
-- getCurrentWeather()
-  * Returns correct data structure
-  * Handles API errors
-  * Validates API key presence
-  * Formats data correctly
+### 1. Claude Service Unit Tests
+**Location:** `src/lib/claude.test.ts`
 
-- getForecast()
-  * Returns 5-day forecast
-  * Filters data correctly (every 8th item)
-  * Handles API errors
-  * Formats dates correctly
+#### Test Cases
+1. Service Initialization
+   - Should initialize with default model
+   - Should initialize with custom model
+   - Should throw error with invalid API key
 
-- getWeatherIconUrl()
-  * Returns correct URL format
-  * Handles different icon codes
+2. API Request Formation
+   - Should format messages correctly
+   - Should include correct headers
+   - Should use correct model version
+   - Should handle optional parameters
 
-- isOutdoorTaskRecommended()
-  * Returns true for good conditions
-  * Returns false for bad conditions
-  * Handles edge cases
+3. Error Handling
+   - Should handle API errors gracefully
+   - Should implement retry logic
+   - Should provide meaningful error messages
+   - Should handle rate limiting
 
-#### Schema Validation
-- WeatherDataSchema
-  * Validates required fields
-  * Handles invalid data types
-  * Enforces field constraints
+4. Response Processing
+   - Should parse successful responses
+   - Should validate response schema
+   - Should extract relevant content
+   - Should handle empty responses
 
-- ForecastDataSchema
-  * Validates required fields
-  * Handles invalid data types
-  * Enforces field constraints
+### 2. Enhanced Recommendations Tests
+**Location:** `src/lib/recommendations.test.ts`
 
-### 2. Integration Tests
+#### Test Cases
+1. AI Integration
+   - Should enhance rule-based recommendations with AI insights
+   - Should handle AI service failures gracefully
+   - Should maintain base recommendations when AI fails
+   - Should merge AI insights correctly
 
-#### API Routes
-- /api/weather/current
-  * Handles valid requests
-  * Validates query parameters
-  * Returns correct status codes
-  * Handles API errors
-  * Formats response correctly
+2. Weather Integration
+   - Should adjust recommendations based on weather
+   - Should handle weather condition edge cases
+   - Should prioritize tasks correctly
+   - Should validate weather thresholds
 
-- /api/weather/forecast
-  * Handles valid requests
-  * Validates query parameters
-  * Returns correct status codes
-  * Handles API errors
-  * Formats response correctly
+3. Lawn Profile Integration
+   - Should customize recommendations for different grass types
+   - Should consider lawn size in recommendations
+   - Should account for sun exposure
+   - Should handle location-specific adjustments
 
-### 3. Component Tests
+### 3. Type System Tests
+**Location:** `src/types/claude.test.ts`
 
-#### WeatherDisplay Component
-- Rendering
-  * Shows loading state initially
-  * Displays error messages
-  * Renders current weather data
-  * Renders forecast data
-  * Handles empty states
+#### Test Cases
+1. Schema Validation
+   - Should validate request schema
+   - Should validate response schema
+   - Should handle invalid types
+   - Should enforce required fields
 
-- Data Fetching
-  * Makes correct API calls
-  * Handles API errors
-  * Updates on location change
+2. Type Guards
+   - Should correctly identify message types
+   - Should validate error responses
+   - Should handle edge cases
+   - Should maintain type safety
 
-- User Interface
-  * Displays all weather metrics
-  * Shows weather icons
-  * Responsive layout testing
-  * Accessibility testing
+### 4. End-to-End Tests
+**Location:** `src/test/claude-integration.test.ts`
 
-## Test Data
+#### Test Cases
+1. Full Integration Flow
+   - Should generate recommendations with AI insights
+   - Should handle full request-response cycle
+   - Should maintain data consistency
+   - Should respect rate limits
 
-### Mock Weather Data
-```typescript
-const mockCurrentWeather = {
-  temperature: 65,
-  condition: "clear sky",
-  humidity: 45,
-  windSpeed: 8,
-  icon: "01d"
-};
+2. Error Recovery
+   - Should maintain service with API failures
+   - Should retry failed requests appropriately
+   - Should fall back to rule-based system
+   - Should log errors correctly
 
-const mockForecast = [
-  {
-    date: "3/18/2025",
-    temperature: 68,
-    condition: "clear sky",
-    icon: "01d"
-  },
-  // ... more days
-];
-```
+## Test Dependencies
 
-### Test Cases Matrix
-1. Good Weather Conditions
-   - Clear sky, temp 65°F, wind 8mph
-   - Partly cloudy, temp 72°F, wind 5mph
-
-2. Bad Weather Conditions
-   - Rain, temp 45°F, wind 20mph
-   - Snow, temp 30°F, wind 15mph
-
-3. Edge Cases
-   - Temperature at limits (50°F, 85°F)
-   - Wind speed at limit (15mph)
-   - Mixed conditions
-
-## Test Implementation Plan
-
-1. Setup Phase
-   - Install test dependencies
-   - Configure Jest for Next.js
-   - Set up MSW for API mocking
-   - Create test utilities
-
-2. Implementation Phase
-   - Create test files matching source structure
-   - Implement unit tests first
-   - Add integration tests
-   - Create component tests
-   - Set up CI test workflow
-
-3. Validation Phase
-   - Run coverage reports
-   - Review test quality
-   - Document test results
-   - Address any gaps
-
-## Success Criteria
-- All test suites pass
-- Coverage goals met
-- Edge cases handled
-- CI pipeline integration
-- Documentation complete
-
-## Dependencies
-- OpenWeatherMap API mock data
-- Test environment variables
-- MSW service worker setup
-- Component testing utilities
-
-## Calendar Component Test Strategy
-
-### 1. Unit Tests
-
-#### Task Date Utilities
-- getTasksForDate()
-  * Returns tasks for correct date
-  * Handles date boundaries
-  * Filters by date correctly
-  * Returns empty array when no tasks
-
-- getPriorityColorClass()
-  * Returns correct color for each priority
-  * Handles unknown priority levels
-  * Case-insensitive handling
-
-### 2. Integration Tests
-
-#### Calendar API Integration
-- /api/maintenance/schedule
-  * Returns scheduled tasks
-  * Handles date filtering
-  * Validates authentication
-  * Returns correct task structure
-  * Handles errors properly
-
-### 3. Component Tests
-
-#### MaintenanceCalendar Component
-- Rendering
-  * Shows loading spinner initially
-  * Displays authentication errors
-  * Renders calendar grid correctly
-  * Shows task indicators properly
-  * Displays weather warnings
-  * Handles empty states
-
-- Interactions
-  * Date selection works
-  * Task details display on selection
-  * Priority indicators visible
-  * Weather warnings show correctly
-  * Hover effects work
-
-- Authentication
-  * Handles unauthorized state
-  * Shows login prompt
-  * Protects task data
-  * Maintains state after auth
+### Required Mocks
+1. Claude API responses
+2. Weather data
+3. Lawn profiles
+4. Error conditions
 
 ### Test Data
+1. Sample lawn profiles
+2. Weather conditions
+3. API response templates
+4. Error scenarios
 
-#### Mock Calendar Data
-```typescript
-const mockScheduledTasks = [
-  {
-    id: "task1",
-    scheduledDate: "2025-03-18",
-    status: "pending",
-    weatherAdjusted: true,
-    task: {
-      name: "Mow Lawn",
-      description: "Regular mowing",
-      priority: "high"
-    }
-  },
-  // ... more tasks
-];
-```
+## Coverage Goals
 
-### Success Criteria
-- All test suites pass
-- Coverage goals met
-- Edge cases handled
-- Authentication tested
-- Weather integration verified
-- Task display validated
+### Target Coverage
+- Overall: 85%+
+- Critical paths: 95%+
+- Error handling: 90%+
+- Edge cases: 80%+
 
-## Notes
-- Focus on critical path testing first
-- Use realistic test data from testData.md
-- Ensure API mocking is reliable
-- Consider rate limiting in tests
-- Test all calendar interactions
-- Verify authentication flows
+### Priority Areas
+1. API interaction reliability
+2. Error handling and recovery
+3. Data transformation accuracy
+4. Type safety enforcement
+
+## Success Criteria
+
+### Functional
+1. All test cases pass
+2. Coverage goals met
+3. No critical bugs found
+4. Performance within acceptable range
+
+### Non-Functional
+1. Tests complete within time limit
+2. Mocks properly isolated
+3. Test data properly managed
+4. Documentation complete
+
+## Implementation Plan
+
+### Phase 1: Setup
+1. Create test files
+2. Set up mocks
+3. Configure test environment
+4. Prepare test data
+
+### Phase 2: Implementation
+1. Write unit tests
+2. Implement integration tests
+3. Add error handling tests
+4. Create E2E tests
+
+### Phase 3: Validation
+1. Run full test suite
+2. Measure coverage
+3. Review test results
+4. Document findings
+
+## Next Steps
+1. Get architect approval for strategy
+2. Switch to Code mode for test implementation
+3. Create test files and mocks
+4. Implement test cases
+5. Validate coverage and results

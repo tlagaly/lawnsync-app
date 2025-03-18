@@ -1,11 +1,12 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
+import type { DatabaseClient } from '@/types/db';
 
 declare global {
-  var prisma: PrismaClient | undefined;
+  var prisma: DatabaseClient | undefined;
 }
 
-export const db = globalThis.prisma || new PrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalThis.prisma = db;
+if (!global.prisma) {
+  global.prisma = new PrismaClient() as DatabaseClient;
 }
+
+export const db = global.prisma;

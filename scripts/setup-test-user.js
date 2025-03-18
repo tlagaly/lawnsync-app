@@ -3,16 +3,22 @@ const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
+// Use the API key owner's email for testing
+const TEST_EMAIL = 'tlagaly@gmail.com';
+const TEST_NAME = 'Tyler Lagaly';
+
 async function setupTestUser() {
   try {
-    // Create test user
+    // Create test user with the developer's email for testing
     const hashedPassword = await bcrypt.hash('test123', 10);
     const user = await prisma.user.upsert({
-      where: { email: 'test@lawnsync.app' },
-      update: {},
+      where: { email: TEST_EMAIL },
+      update: {
+        name: TEST_NAME,
+      },
       create: {
-        email: 'test@lawnsync.app',
-        name: 'Test User',
+        email: TEST_EMAIL,
+        name: TEST_NAME,
         password: hashedPassword,
       },
     });
@@ -20,7 +26,13 @@ async function setupTestUser() {
     // Create notification preferences
     await prisma.notificationPreferences.upsert({
       where: { userId: user.id },
-      update: {},
+      update: {
+        taskReminders: true,
+        weatherAlerts: true,
+        weeklySummary: true,
+        careRecommendations: true,
+        timezone: 'America/Chicago',
+      },
       create: {
         userId: user.id,
         taskReminders: true,

@@ -23,14 +23,49 @@ enum TaskStatus {
   rescheduled
 }
 
+enum NotificationType {
+  task_reminder
+  weather_alert
+  weekly_summary
+  care_recommendation
+}
+
 model User {
-  id            String      @id @default(cuid())
-  name          String?
-  email         String      @unique
-  password      String
-  lawnProfile   LawnProfile?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id                    String                  @id @default(cuid())
+  name                  String?
+  email                 String                  @unique
+  password              String
+  lawnProfile           LawnProfile?
+  notificationPrefs     NotificationPreferences?
+  notificationHistory   NotificationHistory[]
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+}
+
+model NotificationPreferences {
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  user                  User      @relation(fields: [userId], references: [id])
+  taskReminders         Boolean   @default(true)
+  weatherAlerts         Boolean   @default(true)
+  weeklySummary         Boolean   @default(true)
+  careRecommendations   Boolean   @default(true)
+  timezone              String    @default("UTC")
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model NotificationHistory {
+  id          String            @id @default(cuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id])
+  type        NotificationType
+  status      String            // sent, failed, delivered
+  subject     String
+  content     String
+  metadata    Json?             // Additional context (task ID, weather data, etc.)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 }
 
 model LawnProfile {

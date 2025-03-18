@@ -10,7 +10,9 @@ const customJestConfig = {
   // Setup files run before test framework setup
   setupFiles: ['<rootDir>/jest.polyfills.js'],
   // Setup files that run after test framework initialization
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: [
+    '<rootDir>/jest.setup.js',
+  ],
   testEnvironment: 'jest-environment-jsdom',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
@@ -41,7 +43,37 @@ const customJestConfig = {
     '/node_modules/(?!(@mswjs|msw)/).+\\.js$'
   ],
   moduleDirectories: ['node_modules', '<rootDir>'],
-  resolver: undefined
+  resolver: undefined,
+  // Add global mocks
+  globals: {
+    'ts-jest': {
+      tsconfig: '<rootDir>/tsconfig.json',
+      diagnostics: {
+        warnOnly: true
+      }
+    },
+    // Set test environment
+    NODE_ENV: 'test',
+  },
+  // Increase test timeout
+  testTimeout: 30000,
+  // Use swc for TypeScript compilation
+  transform: {
+    '^.+\\.(t|j)sx?$': ['@swc/jest', {
+      jsc: {
+        parser: {
+          syntax: 'typescript',
+          tsx: true,
+          decorators: true,
+        },
+        transform: {
+          react: {
+            runtime: 'automatic',
+          },
+        },
+      },
+    }],
+  },
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

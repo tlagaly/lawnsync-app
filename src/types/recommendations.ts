@@ -1,78 +1,117 @@
 import { z } from "zod";
 
-export const TaskConditionSchema = z.object({
-  met: z.boolean(),
-  text: z.string(),
-});
+export interface TaskCondition {
+  met: boolean;
+  text: string;
+}
 
-export const TaskRecommendationSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  priority: z.enum(["high", "medium", "low"]),
-  conditions: z.array(TaskConditionSchema),
-  products: z.array(z.object({
-    name: z.string(),
-    type: z.string(),
-    description: z.string(),
-  })).optional(),
-});
+export interface ProductRecommendation {
+  name: string;
+  type: string;
+  description: string;
+}
+
+export interface TaskRecommendation {
+  name: string;
+  description: string;
+  priority: "high" | "medium" | "low";
+  conditions: TaskCondition[];
+  products?: ProductRecommendation[];
+  aiInsights?: {
+    personalizedTips: string[];
+    seasonalAdvice: string;
+  };
+}
+
+export interface RecommendationsResponse {
+  tasks: TaskRecommendation[];
+  nextScheduledTask?: {
+    name: string;
+    dueDate: string;
+  };
+}
 
 export const RecommendationsResponseSchema = z.object({
-  tasks: z.array(TaskRecommendationSchema),
-  nextScheduledTask: z.object({
-    name: z.string(),
-    dueDate: z.string(),
-  }).optional(),
+  tasks: z.array(
+    z.object({
+      name: z.string(),
+      description: z.string(),
+      priority: z.enum(["high", "medium", "low"]),
+      conditions: z.array(
+        z.object({
+          met: z.boolean(),
+          text: z.string(),
+        })
+      ),
+      products: z
+        .array(
+          z.object({
+            name: z.string(),
+            type: z.string(),
+            description: z.string(),
+          })
+        )
+        .optional(),
+      aiInsights: z
+        .object({
+          personalizedTips: z.array(z.string()),
+          seasonalAdvice: z.string(),
+        })
+        .optional(),
+    })
+  ),
+  nextScheduledTask: z
+    .object({
+      name: z.string(),
+      dueDate: z.string(),
+    })
+    .optional(),
 });
 
-export type TaskCondition = z.infer<typeof TaskConditionSchema>;
-export type TaskRecommendation = z.infer<typeof TaskRecommendationSchema>;
-export type RecommendationsResponse = z.infer<typeof RecommendationsResponseSchema>;
-
-// Grass-specific recommendations
+// Predefined tasks based on grass type
 export const GRASS_TYPE_TASKS = {
-  "bermuda": {
-    mowingHeight: "1-2 inches",
-    wateringFrequency: "1-2 times per week",
-    fertilizingSchedule: "Every 4-6 weeks during growing season",
-  },
-  "fescue": {
-    mowingHeight: "2.5-3.5 inches",
-    wateringFrequency: "2-3 times per week",
-    fertilizingSchedule: "Every 6-8 weeks during growing season",
-  },
   "kentucky-bluegrass": {
     mowingHeight: "2.5-3.5 inches",
-    wateringFrequency: "1-2 times per week",
-    fertilizingSchedule: "Every 6-8 weeks during growing season",
+    wateringFrequency: "1-1.5 inches per week",
+    fertilizingSchedule: "4-5 times per year",
   },
-  "st-augustine": {
-    mowingHeight: "2.5-4 inches",
-    wateringFrequency: "1-2 times per week",
-    fertilizingSchedule: "Every 6-8 weeks during growing season",
+  "tall-fescue": {
+    mowingHeight: "2-3 inches",
+    wateringFrequency: "1-1.25 inches per week",
+    fertilizingSchedule: "3-4 times per year",
+  },
+  "perennial-ryegrass": {
+    mowingHeight: "1.5-2.5 inches",
+    wateringFrequency: "1 inch per week",
+    fertilizingSchedule: "2-3 times per year",
+  },
+  "bermuda": {
+    mowingHeight: "0.5-1.5 inches",
+    wateringFrequency: "1-1.25 inches per week",
+    fertilizingSchedule: "4-6 times per year",
   },
   "zoysia": {
-    mowingHeight: "0.5-2 inches",
-    wateringFrequency: "1-2 times per week",
-    fertilizingSchedule: "Every 6-8 weeks during growing season",
+    mowingHeight: "0.5-1 inch",
+    wateringFrequency: "1 inch per week",
+    fertilizingSchedule: "2-3 times per year",
   },
-} as const;
+};
 
-// Sun exposure recommendations
+// Sun exposure adjustments
 export const SUN_EXPOSURE_TASKS = {
   "full-sun": {
-    wateringAdjustment: "Increase frequency during hot periods",
-    mowingTiming: "Early morning or late afternoon",
-    fertilizingNote: "May need more frequent fertilization",
+    mowingTiming: "Mow during cooler parts of the day",
+    wateringAdjustment: "Water deeply and less frequently",
+    fertilizingNote: "Use full recommended fertilizer amount",
   },
   "partial-shade": {
-    wateringAdjustment: "Monitor moisture levels carefully",
-    mowingTiming: "Anytime during the day",
-    fertilizingNote: "Standard fertilization schedule",
+    mowingTiming: "Mow when grass is dry",
+    wateringAdjustment: "Monitor soil moisture, adjust watering as needed",
+    fertilizingNote: "Reduce fertilizer amount by 25%",
   },
   "full-shade": {
-    wateringAdjustment: "Reduce watering frequency",
-    mowingTiming: "Anytime during the day",
-    fertilizingNote: "Reduce fertilization frequency",
+    mowingTiming: "Raise mowing height slightly",
+    wateringAdjustment: "Water less frequently, monitor for moisture",
+    fertilizingNote: "Reduce fertilizer amount by 50%",
   },
-} as const;
+};
