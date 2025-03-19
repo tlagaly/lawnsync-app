@@ -61,6 +61,12 @@ The following environment variables need to be configured in your Vercel project
 
 3. **Framework Preset**: Next.js
 
+4. **CSS Configuration**
+   - Using Next.js's built-in CSS handling
+   - PostCSS configured for Tailwind CSS
+   - No custom webpack configuration needed
+   - CSS optimization handled by Next.js
+
 ## Post-Deployment Verification
 
 1. Check if the database migrations were successful
