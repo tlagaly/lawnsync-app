@@ -10,10 +10,9 @@ export default {
             preset: [
               'default',
               {
-                discardComments: {
-                  removeAll: true,
-                },
+                discardComments: { removeAll: true },
                 normalizeWhitespace: false,
+                colormin: false,
               },
             ],
           },
