@@ -8,6 +8,7 @@ The following environment variables need to be configured in your Vercel project
    - Create a variable named `DATABASE_URL` (uppercase)
    - Create a variable named `DIRECT_URL` (uppercase)
    - Set their values to your Neon database URLs
+   - Make sure to create these for both Production and Preview environments
 
 2. **Authentication**
    - Create a variable named `NEXTAUTH_SECRET` (uppercase)
@@ -18,6 +19,7 @@ The following environment variables need to be configured in your Vercel project
    - Create a variable named `OPENWEATHER_API_KEY` (uppercase)
    - Create a variable named `RESEND_API_KEY` (uppercase)
    - Create a variable named `CLAUDE_API_KEY` (uppercase)
+   - Use different API keys for Production and Preview environments
 
 4. **Environment Settings**
    - Create a variable named `NODE_ENV` (uppercase)
@@ -30,8 +32,9 @@ The following environment variables need to be configured in your Vercel project
 2. Navigate to the "Environment Variables" section
 3. For each variable:
    - Use UPPERCASE for variable names
-   - Select the appropriate environments (Production, Preview, Development)
+   - Create separate values for Production and Preview environments
    - Variables are automatically encrypted and securely stored
+   - Values will be referenced in vercel.json using ${VARIABLE_NAME} syntax
 
 ## Database Setup
 
@@ -44,7 +47,7 @@ The following environment variables need to be configured in your Vercel project
 
 ## Build Configuration
 
-1. **Build Command**: `npm run build`
+1. **Build Command**: `next build`
    - This will:
      - Generate Prisma client
      - Run database migrations
@@ -54,7 +57,7 @@ The following environment variables need to be configured in your Vercel project
    - This will install all dependencies including:
      - PostCSS and its plugins
      - Tailwind CSS
-     - Style loaders
+     - Next.js dependencies
 
 3. **Framework Preset**: Next.js
 
@@ -78,6 +81,7 @@ If you encounter any issues:
 2. Verify environment variables are correctly set:
    - Names must be in UPPERCASE
    - Values must match your local .env file
+   - Separate values for Production and Preview environments
 3. Check if database migrations were successful
 4. Verify CSS processing by inspecting network tab for CSS files
 5. Check browser console for any JavaScript errors
