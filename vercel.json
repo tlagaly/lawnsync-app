@@ -7,7 +7,7 @@
   "env": {
     "DATABASE_URL": "@database_url",
     "DIRECT_URL": "@direct_url",
-    "NEXTAUTH_URL": "https://app.lawnsync.ai",
+    "NEXTAUTH_URL": "${VERCEL_URL}",
     "NEXTAUTH_SECRET": "@nextauth_secret",
     "OPENWEATHER_API_KEY": "@openweather_api_key",
     "RESEND_API_KEY": "@resend_api_key",
@@ -18,7 +18,7 @@
     "env": {
       "DATABASE_URL": "@database_url",
       "DIRECT_URL": "@direct_url",
-      "NEXTAUTH_URL": "https://app.lawnsync.ai",
+      "NEXTAUTH_URL": "${VERCEL_URL}",
       "NEXTAUTH_SECRET": "@nextauth_secret",
       "OPENWEATHER_API_KEY": "@openweather_api_key",
       "RESEND_API_KEY": "@resend_api_key",
