@@ -6,7 +6,6 @@ const nextConfig = {
   images: {
     domains: ['localhost', 'app.lawnsync.ai'],
   },
-  postcss: true, // Enable PostCSS processing
   webpack: (config) => {
     // Ensure PostCSS loader is using our config file
     const rules = config.module.rules
@@ -14,11 +13,13 @@ const nextConfig = {
       .oneOf.filter((rule) => Array.isArray(rule.use));
 
     rules.forEach((rule) => {
-      const cssLoader = rule.use.find((use) => use?.loader?.includes('css-loader'));
-      if (cssLoader) {
-        cssLoader.options = {
-          ...cssLoader.options,
-          importLoaders: 1,
+      const postCssLoader = rule.use?.find((use) => use?.loader?.includes('postcss-loader'));
+      if (postCssLoader) {
+        postCssLoader.options = {
+          ...postCssLoader.options,
+          postcssOptions: {
+            config: true, // Use postcss.config.mjs
+          },
         };
       }
     });
