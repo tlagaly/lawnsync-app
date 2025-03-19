@@ -24,7 +24,14 @@ const nextConfig = {
             },
           },
         },
-        'postcss-loader',
+        {
+          loader: 'postcss-loader',
+          options: {
+            postcssOptions: {
+              config: true,
+            },
+          },
+        },
       ],
     });
     return config;
