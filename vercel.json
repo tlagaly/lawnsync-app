@@ -5,15 +5,25 @@
   "framework": "nextjs",
   "regions": ["iad1"],
   "env": {
+    "DATABASE_URL": "@database_url",
+    "DIRECT_URL": "@direct_url",
     "NEXTAUTH_URL": "https://app.lawnsync.ai",
     "NEXTAUTH_SECRET": "@nextauth_secret",
-    "DATABASE_URL": "@database_url",
     "OPENWEATHER_API_KEY": "@openweather_api_key",
-    "ANTHROPIC_API_KEY": "@anthropic_api_key",
-    "EMAIL_SERVER_HOST": "@email_server_host",
-    "EMAIL_SERVER_PORT": "@email_server_port",
-    "EMAIL_SERVER_USER": "@email_server_user",
-    "EMAIL_SERVER_PASSWORD": "@email_server_password",
-    "EMAIL_FROM": "@email_from"
+    "RESEND_API_KEY": "@resend_api_key",
+    "CLAUDE_API_KEY": "@claude_api_key",
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "DATABASE_URL": "@database_url",
+      "DIRECT_URL": "@direct_url",
+      "NEXTAUTH_URL": "https://app.lawnsync.ai",
+      "NEXTAUTH_SECRET": "@nextauth_secret",
+      "OPENWEATHER_API_KEY": "@openweather_api_key",
+      "RESEND_API_KEY": "@resend_api_key",
+      "CLAUDE_API_KEY": "@claude_api_key",
+      "NODE_ENV": "production"
+    }
   }
 }
