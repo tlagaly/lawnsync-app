@@ -10,6 +10,12 @@ const nextConfig = {
     optimizeCss: true,
   },
   webpack: (config) => {
+    // Remove the existing CSS rule
+    config.module.rules = config.module.rules.filter(
+      (rule) => !(rule.test && rule.test.test('.css'))
+    );
+
+    // Add our custom CSS rule
     config.module.rules.push({
       test: /\.css$/,
       use: [
