@@ -61,6 +61,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "msw": "^2.1.5",
     "postcss-import": "^16.1.0",
+    "postcss-loader": "^8.1.1",
     "postcss-nesting": "^13.0.1",
     "style-loader": "^4.0.0",
     "typescript": "^5.3.3"

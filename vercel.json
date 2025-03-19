@@ -1,12 +1,19 @@
 {
   "version": 2,
-  "buildCommand": "next build",
-  "installCommand": "npm install --legacy-peer-deps && npx prisma generate && npx prisma migrate deploy",
-  "outputDirectory": ".next",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
   "framework": "nextjs",
-  "git": {
-    "deploymentEnabled": {
-      "main": true
-    }
+  "regions": ["iad1"],
+  "env": {
+    "NEXTAUTH_URL": "https://app.lawnsync.ai",
+    "NEXTAUTH_SECRET": "@nextauth_secret",
+    "DATABASE_URL": "@database_url",
+    "OPENWEATHER_API_KEY": "@openweather_api_key",
+    "ANTHROPIC_API_KEY": "@anthropic_api_key",
+    "EMAIL_SERVER_HOST": "@email_server_host",
+    "EMAIL_SERVER_PORT": "@email_server_port",
+    "EMAIL_SERVER_USER": "@email_server_user",
+    "EMAIL_SERVER_PASSWORD": "@email_server_password",
+    "EMAIL_FROM": "@email_from"
   }
 }
