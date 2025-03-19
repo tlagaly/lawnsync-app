@@ -1,29 +1,17 @@
 {
   "version": 2,
-  "buildCommand": "npm install --save-dev postcss-loader && npm run build",
+  "buildCommand": "next build",
   "installCommand": "npm install",
   "framework": "nextjs",
   "regions": ["iad1"],
   "env": {
-    "DATABASE_URL": "@database_url",
-    "DIRECT_URL": "@direct_url",
-    "NEXTAUTH_URL": "https://app.lawnsync.ai",
-    "NEXTAUTH_SECRET": "@nextauth_secret",
-    "OPENWEATHER_API_KEY": "@openweather_api_key",
-    "RESEND_API_KEY": "@resend_api_key",
-    "CLAUDE_API_KEY": "@claude_api_key",
-    "NODE_ENV": "production"
-  },
-  "build": {
-    "env": {
-      "DATABASE_URL": "@database_url",
-      "DIRECT_URL": "@direct_url",
-      "NEXTAUTH_URL": "https://app.lawnsync.ai",
-      "NEXTAUTH_SECRET": "@nextauth_secret",
-      "OPENWEATHER_API_KEY": "@openweather_api_key",
-      "RESEND_API_KEY": "@resend_api_key",
-      "CLAUDE_API_KEY": "@claude_api_key",
-      "NODE_ENV": "production"
-    }
+    "DATABASE_URL": "@DATABASE_URL",
+    "DIRECT_URL": "@DIRECT_URL",
+    "NEXTAUTH_URL": "${VERCEL_URL}",
+    "NEXTAUTH_SECRET": "@NEXTAUTH_SECRET",
+    "OPENWEATHER_API_KEY": "@OPENWEATHER_API_KEY",
+    "RESEND_API_KEY": "@RESEND_API_KEY",
+    "CLAUDE_API_KEY": "@CLAUDE_API_KEY",
+    "NODE_ENV": "development"
   }
 }
