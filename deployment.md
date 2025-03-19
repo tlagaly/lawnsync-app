@@ -5,28 +5,33 @@
 The following environment variables need to be configured in your Vercel project settings:
 
 1. **Database Configuration**
-   - `DATABASE_URL`: Your production PostgreSQL connection string from Neon (with pgbouncer enabled)
-   - `DIRECT_URL`: Your direct PostgreSQL connection string from Neon (for migrations)
+   - Create a variable named `DATABASE_URL` (uppercase)
+   - Create a variable named `DIRECT_URL` (uppercase)
+   - Set their values to your Neon database URLs
 
 2. **Authentication**
-   - `NEXTAUTH_URL`: Set to `https://app.lawnsync.ai`
-   - `NEXTAUTH_SECRET`: Generate a secure random string using `openssl rand -base64 32`
+   - Create a variable named `NEXTAUTH_SECRET` (uppercase)
+   - For preview deployments, NEXTAUTH_URL will be set automatically by Vercel
+   - For production, it will be set to https://app.lawnsync.ai
 
 3. **External APIs**
-   - `OPENWEATHER_API_KEY`: Your OpenWeather API key
-   - `RESEND_API_KEY`: Your Resend API key for email services
-   - `CLAUDE_API_KEY`: Your Anthropic Claude API key
+   - Create a variable named `OPENWEATHER_API_KEY` (uppercase)
+   - Create a variable named `RESEND_API_KEY` (uppercase)
+   - Create a variable named `CLAUDE_API_KEY` (uppercase)
 
 4. **Environment Settings**
-   - `NODE_ENV`: Set to `production`
+   - Create a variable named `NODE_ENV` (uppercase)
+   - Set to "development" for preview deployments
+   - Set to "production" for production deployments
 
 ## Setting Up Environment Variables in Vercel
 
 1. Go to your project settings in the Vercel dashboard
 2. Navigate to the "Environment Variables" section
-3. Add each variable with its corresponding value
-4. Make sure to use the same variable names as listed above
-5. Variables are automatically encrypted and securely stored
+3. For each variable:
+   - Use UPPERCASE for variable names
+   - Select the appropriate environments (Production, Preview, Development)
+   - Variables are automatically encrypted and securely stored
 
 ## Database Setup
 
@@ -70,7 +75,9 @@ The following environment variables need to be configured in your Vercel project
 If you encounter any issues:
 
 1. Check Vercel deployment logs for build errors
-2. Verify environment variables are correctly set
+2. Verify environment variables are correctly set:
+   - Names must be in UPPERCASE
+   - Values must match your local .env file
 3. Check if database migrations were successful
 4. Verify CSS processing by inspecting network tab for CSS files
 5. Check browser console for any JavaScript errors
