@@ -1,84 +1,68 @@
 # Vercel Deployment Plan
 
-## Overview
-This document outlines the plan for deploying our Next.js application to Vercel with automatic deployments from GitHub.
+## Current Issues
+- Missing 'critters' module causing build failure
+- CSS optimization configuration needs adjustment
+- Environment variable setup needs verification
 
-## Deployment Flow
+## Implementation Plan
 
 ```mermaid
-sequenceDiagram
-    participant G as GitHub
-    participant V as Vercel
-    participant DB as PostgreSQL
-    participant A as App
-
-    Note over DB: 1. Database Setup
-    Note right of DB: Create Production Database
-    Note right of DB: Configure Connection
-
-    Note over V: 2. Vercel Setup
-    V ->> G: Connect to GitHub Repository
-    Note right of V: Configure Build Settings
-    Note right of V: Set Environment Variables
-
-    Note over G: 3. Git Configuration
-    Note right of G: Configure Production Branch
-    Note right of G: Set up Branch Protection
-
-    Note over V,A: 4. Deployment Flow
-    G ->> V: Push to main triggers build
-    V ->> DB: Run Database Migrations
-    V ->> A: Deploy Application
-    A ->> DB: Connect to Production DB
+flowchart TD
+    A[Current State] --> B[1. Fix CSS Optimization]
+    B --> B1[Disable optimizeCss experiment]
+    B --> B2[Add critters dependency]
+    
+    A --> C[2. Environment Setup]
+    C --> C1[Verify env variables]
+    C --> C2[Update variable syntax]
+    
+    A --> D[3. Build Configuration]
+    D --> D1[Update build command]
+    D --> D2[Configure Prisma]
+    
+    A --> E[4. Testing]
+    E --> E1[Local build test]
+    E --> E2[Preview deployment]
 ```
 
-## Implementation Steps
+## Detailed Steps
 
-### 1. Database Setup
-- Create a production PostgreSQL database (recommended: Neon, Supabase, or Railway)
-- Get the production database connection string
-- Update schema and run migrations
+### 1. Fix CSS Optimization
+- Remove experimental optimizeCss flag from next.config.js
+- Add critters as a dependency: `npm install --save-dev critters`
+- Keep the built-in CSS handling we set up earlier
 
-### 2. Environment Variables Configuration
-Required variables:
-```
-DATABASE_URL=production-db-url
-OPENWEATHER_API_KEY=production-key
-RESEND_API_KEY=production-key
-CLAUDE_API_KEY=production-key
-NEXTAUTH_URL=https://your-production-domain
-NEXTAUTH_SECRET=generated-secret
-```
+### 2. Environment Setup
+- Verify all required environment variables are set in Vercel:
+  ```
+  DATABASE_URL
+  DIRECT_URL
+  NEXTAUTH_SECRET
+  OPENWEATHER_API_KEY
+  RESEND_API_KEY
+  CLAUDE_API_KEY
+  ```
+- Use ${VARIABLE_NAME} syntax in vercel.json
+- Ensure separate values for Preview and Production environments
 
-### 3. Vercel Project Setup
-- Connect GitHub repository (https://github.com/tlagaly/lawnsync-app)
-- Configure build settings:
-  - Framework Preset: Next.js
-  - Build Command: `npm run build`
-  - Install Command: `npm install`
-  - Output Directory: `.next`
+### 3. Build Configuration
+- Update build command to handle Prisma and Next.js build
+- Ensure Prisma client generation happens before build
+- Configure proper database URLs for each environment
 
-### 4. Automatic Deployment Configuration
-- Configure production branch (main/master)
-- Set up branch protection rules
-- Configure automatic preview deployments for PRs
-
-### 5. Database Migration Strategy
-- Add build command to run migrations during deployment
-- Configure Prisma for production environment
-
-### 6. Post-Deployment Verification
-- Database connection check
-- API endpoint verification
-- Authentication flow testing
-- Email service verification
+### 4. Testing
+- Test build locally first
+- Deploy to preview environment
+- Verify all features work correctly
 
 ## Success Criteria
-- [ ] Production database is set up and accessible
-- [ ] All environment variables are configured in Vercel
-- [ ] GitHub repository is connected to Vercel
-- [ ] Automatic deployments are working
-- [ ] Database migrations run successfully
-- [ ] All API endpoints are functional
-- [ ] Authentication system works in production
-- [ ] Email notifications are being sent correctly
+1. Build completes successfully without CSS optimization errors
+2. Environment variables are properly accessed
+3. Database migrations run successfully
+4. Preview deployment works as expected
+
+## Implementation Notes
+- Changes will be made in Code mode
+- Each step will be tested before proceeding
+- Rollback plan in case of issues
