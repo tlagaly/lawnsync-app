@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 // Temporarily using direct HTML/CSS instead of Chakra UI due to compatibility issues
 // import { Box, Flex, Heading, Text } from '@chakra-ui/react';
 import colors from '../../../theme/foundations/colors';
+import NotificationBadge from './NotificationBadge';
+import NotificationCenter from './NotificationCenter';
+import NotificationToast from './NotificationToast';
+import { getNotifications, initializeNotificationSystem } from '../../../lib/notificationService';
+import type { Notification } from '../../../types/notification';
 
 interface DashboardHeaderProps {
   location: string;
@@ -15,9 +20,62 @@ interface DashboardHeaderProps {
  */
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ location, lawnType }) => {
   const navigate = useNavigate();
+  const [showNotificationCenter, setShowNotificationCenter] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [newNotification, setNewNotification] = useState<Notification | null>(null);
+  
+  useEffect(() => {
+    // Initialize notification system
+    initializeNotificationSystem();
+    
+    // Fetch initial notifications
+    const fetchNotifications = async () => {
+      const data = await getNotifications();
+      setNotifications(data);
+    };
+    
+    fetchNotifications();
+    
+    // Setup polling to check for new notifications
+    const intervalId = setInterval(async () => {
+      const data = await getNotifications();
+      
+      // If there are more notifications than before, show toast for the newest one
+      if (data.length > notifications.length) {
+        // Find the newest notification (highest createdAt timestamp)
+        const newestNotification = [...data].sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )[0];
+        
+        // Show toast for newest notification
+        setNewNotification(newestNotification);
+        
+        // Hide toast after 6 seconds
+        setTimeout(() => {
+          setNewNotification(null);
+        }, 6000);
+      }
+      
+      setNotifications(data);
+    }, 30000); // Check every 30 seconds
+    
+    return () => clearInterval(intervalId);
+  }, [notifications.length]);
   
   const handleSettingsClick = () => {
     navigate('/settings');
+  };
+  
+  const toggleNotificationCenter = () => {
+    setShowNotificationCenter(!showNotificationCenter);
+  };
+  
+  const closeNotificationCenter = () => {
+    setShowNotificationCenter(false);
+  };
+  
+  const dismissToast = () => {
+    setNewNotification(null);
   };
   
   return (
@@ -25,7 +83,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ location, lawnType })
       style={{
         backgroundColor: "white",
         boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
-        padding: "16px"
+        padding: "16px",
+        position: "relative" // For notification center positioning
       }}
     >
       <div style={{ maxWidth: "600px", margin: "0 auto" }}>
@@ -49,34 +108,38 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ location, lawnType })
             LawnSync
           </h1>
 
-          {/* Settings Link */}
-          <button
-            onClick={handleSettingsClick}
-            style={{
-              backgroundColor: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '8px',
-              marginLeft: 'auto',
-              marginRight: '16px'
-            }}
-            aria-label="Account Settings"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              width="20px"
-              height="20px"
-              style={{ color: colors.gray[500] }}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {/* Notification Badge */}
+            <NotificationBadge onClick={toggleNotificationCenter} />
+            
+            {/* Settings Link */}
+            <button
+              onClick={handleSettingsClick}
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '8px',
+                marginLeft: '8px'
+              }}
+              aria-label="Account Settings"
             >
-              <path
-                fill="currentColor"
-                d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
-              />
-            </svg>
-          </button>
+              <svg
+                viewBox="0 0 24 24"
+                width="20px"
+                height="20px"
+                style={{ color: colors.gray[500] }}
+              >
+                <path
+                  fill="currentColor"
+                  d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
+                />
+              </svg>
+            </button>
+          </div>
           
           {/* Location & Lawn Type Info */}
           <div
@@ -156,6 +219,19 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ location, lawnType })
           </div>
         </div>
       </div>
+      
+      {/* NotificationCenter (shown as a side drawer) */}
+      {showNotificationCenter && (
+        <NotificationCenter onClose={closeNotificationCenter} />
+      )}
+      
+      {/* Notification Toast for real-time alerts */}
+      {newNotification && (
+        <NotificationToast
+          notification={newNotification}
+          onClose={dismissToast}
+        />
+      )}
     </header>
   );
 };
