@@ -238,6 +238,57 @@
 - Date and season-based filtering for temporal tracking
 - Weather data integration with photos for context
 
+### AI Recommendation Engine Pattern
+- TypeScript interfaces for recommendation requests, responses, and types
+- Service layer with mock/real toggle following established project patterns
+- OpenAI GPT-3.5 Turbo integration for personalized lawn care advice
+- Intelligent caching system to minimize API calls and control costs
+- Prompt engineering for context-aware recommendations
+- Integration with weather data and user profile for contextual insights
+- RecommendationCard component for summarized recommendation display
+- RecommendationView component for detailed recommendation information
+- RecommendationList component with filtering, sorting, and feedback
+- Mobile-first design with clean, actionable presentation
+- User feedback mechanism to improve future recommendations
+- Dashboard integration through dedicated recommendations tab
+- QuickActions integration with "Ask for Advice" functionality
+- Categorization by type (maintenance, problem-solving, seasonal)
+
+### Plant Identification Pattern
+- TypeScript interfaces for identification requests, responses, and result types
+- Service layer with mock/real toggle following project service patterns
+- Plant.id API integration for accurate plant identification
+- Multiple identification models for weeds, grass species, and diseases
+- Intelligent caching system to minimize API costs and improve performance
+- Comprehensive mock data for development and testing
+- Mobile-first UI optimized for in-yard usage
+- Camera integration for capturing plant photos
+- Gallery integration for selecting existing photos
+- PlantIdentificationCard component for displaying identification results
+- PlantIdentificationView component with detailed species information
+- Problem diagnosis with treatment recommendations
+- Connection to recommendation engine for species-specific care advice
+- Dashboard integration through QuickActions
+- User feedback mechanism to improve identification accuracy
+
+### Smart Watering Schedule Pattern
+- TypeScript interfaces for watering schedules, zones, and configurations
+- Service layer with mock/real toggle following established project patterns
+- Weather forecast integration for adaptive watering scheduling
+- Soil moisture modeling based on rainfall and evaporation rates
+- Zone-based lawn management with customizable parameters
+- Water conservation algorithm with rainfall compensation
+- Configurable watering settings based on grass types and seasons
+- Intelligent scheduling based on environmental factors
+- Dashboard integration with upcoming watering events display
+- Schedule customization with rule-based optimization
+- Water usage monitoring and conservation metrics
+- Mobile-first UI with watering zone management
+- QuickActions integration with watering configuration shortcut
+- Visual water conservation tracking with gallons saved display
+- Different watering needs handled by soil type, sun exposure, and slope factors
+- Configurable notifications for watering events and adjustments
+
 ### Image Processing Pipeline
 - Secure image upload and storage
 - Analysis for problem identification
@@ -333,3 +384,6 @@
 [2025-05-06 01:45:00] - Extended Weather Data Integration pattern with OpenWeatherMap mock/real toggle, caching, and context-aware recommendations
 [2025-05-06 10:49:00] - Added Weather-Adaptive Task Scheduling Pattern documenting the implementation approach, including type-based interfaces, weather compatibility scoring, and mobile-first UI components
 [2025-05-06 11:21:00] - Added Lawn Progress Gallery Pattern documenting the photo gallery implementation with before/after comparison, filtering, and mobile-first approach
+[2025-05-06 12:36:00] - Added AI Recommendation Engine Pattern documenting the implementation approach, including OpenAI integration, caching, context-aware recommendations, and user feedback mechanisms
+[2025-05-06 16:00:41] - Added Plant Identification Pattern documenting the implementation approach, including Plant.id API integration, interfaces for different identification types, and mobile-first UI components with camera integration
+[2025-05-06 16:22:12] - Added Smart Watering Schedule Pattern documenting the implementation approach, including weather forecast integration, rainfall compensation, zone-based management, and water conservation metrics

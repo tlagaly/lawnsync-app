@@ -11,6 +11,8 @@ import QuickActions from './components/QuickActions';
 import PhotoGallery from './components/PhotoGallery';
 import PhotoCompare from './components/PhotoCompare';
 import RecommendationList from './components/RecommendationList';
+import WateringScheduleCard from './components/WateringScheduleCard';
+import WateringConfigView from './components/WateringConfigView';
 import { mockUserData, mockTasks } from './mockData';
 import { getWeatherForLocation } from '../../lib/weatherService';
 import { getScheduledTasks, getWeatherCompatibleTasks } from '../../lib/taskSchedulerService';
@@ -29,7 +31,7 @@ const DashboardContainer: React.FC = () => {
   const [isLoadingWeather, setIsLoadingWeather] = useState(true);
   const [tasks, setTasks] = useState<ScheduledTask[]>([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(true);
-  const [activeView, setActiveView] = useState<'list' | 'calendar' | 'gallery' | 'compare' | 'recommendations' | 'identify-plant'>('list');
+  const [activeView, setActiveView] = useState<'list' | 'calendar' | 'gallery' | 'compare' | 'recommendations' | 'identify-plant' | 'watering-config'>('list');
 
   useEffect(() => {
     // Fetch weather data for user location
@@ -109,7 +111,7 @@ const DashboardContainer: React.FC = () => {
             <WeatherCard weather={weatherData} />
           )}
           
-          {/* Weather Card (Weather card is shown only in task and calendar views) */}
+          {/* Weather and Watering Cards (shown only in task and calendar views) */}
           {(activeView === 'list' || activeView === 'calendar') && (
             isLoadingWeather ? (
               <div style={{
@@ -124,6 +126,13 @@ const DashboardContainer: React.FC = () => {
             ) : weatherData && (
               <WeatherCard weather={weatherData} />
             )
+          )}
+
+          {/* Smart Watering Schedule Card (shown only in list and calendar views) */}
+          {(activeView === 'list' || activeView === 'calendar') && (
+            <WateringScheduleCard
+              onConfigureClick={() => setActiveView('watering-config')}
+            />
           )}
           
           {/* Add Photo Gallery Tab */}
@@ -310,6 +319,12 @@ const DashboardContainer: React.FC = () => {
               {activeView === 'gallery' && <PhotoGallery />}
               {activeView === 'compare' && <PhotoCompare />}
               {activeView === 'recommendations' && <RecommendationList />}
+              {activeView === 'watering-config' && (
+                <WateringConfigView
+                  onSave={() => setActiveView('list')}
+                  onCancel={() => setActiveView('list')}
+                />
+              )}
               {activeView === 'identify-plant' && (
                 <div style={{ marginBottom: '1rem' }}>
                   <PlantIdentificationView

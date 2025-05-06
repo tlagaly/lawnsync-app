@@ -7,12 +7,20 @@ import { takePhoto, uploadPhoto, getPhotoWeatherData } from '../../../lib/galler
  * Displays common task buttons for fast access to frequent actions
  */
 interface QuickActionsProps {
-  onNavigateView?: (view: 'list' | 'calendar' | 'gallery' | 'compare' | 'recommendations' | 'identify-plant') => void;
+  onNavigateView?: (view: 'list' | 'calendar' | 'gallery' | 'compare' | 'recommendations' | 'identify-plant' | 'watering-config') => void;
 }
 
 const QuickActions: React.FC<QuickActionsProps> = ({ onNavigateView }) => {
   // Array of quick actions
   const actions = [
+    {
+      id: 'manage-watering',
+      label: 'Smart Watering',
+      description: 'Manage automatic watering schedule',
+      icon: 'M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8zm0 18c-3.35 0-6-2.57-6-6.2 0-2.34 1.95-5.44 6-9.14 4.05 3.7 6 6.79 6 9.14 0 3.63-2.65 6.2-6 6.2zm-4.17-6c.37 0 .67.26.74.62.41 2.22 2.28 2.98 3.64 2.87.43-.02.79.32.79.75 0 .4-.32.73-.72.75-2.13.13-4.62-1.09-5.19-4.12-.08-.45.28-.87.74-.87z',
+      color: colors.blue[500],
+      bgColor: colors.blue[50],
+    },
     {
       id: 'log-activity',
       label: 'Log Activity',
@@ -58,6 +66,11 @@ const QuickActions: React.FC<QuickActionsProps> = ({ onNavigateView }) => {
   // Handle action button click
   const handleActionClick = async (actionId: string) => {
     switch (actionId) {
+      case 'manage-watering':
+        if (onNavigateView) {
+          onNavigateView('watering-config');
+        }
+        break;
       case 'log-activity':
         console.log('Log activity clicked');
         break;
