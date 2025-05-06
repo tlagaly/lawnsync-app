@@ -1,26 +1,52 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import colors from '../../../theme/foundations/colors';
-
-interface Task {
-  id: number;
-  title: string;
-  description: string;
-  dueDate: string;
-  priority: string;
-  category: string;
-  isCompleted: boolean;
-  icon: string;
-}
+import { 
+  getScheduledTasks, 
+  getWeatherCompatibleTasks,
+  updateScheduledTask
+} from '../../../lib/taskSchedulerService';
+import type { ScheduledTask } from '../../../types/scheduler';
+import { mockUserData } from '../mockData';
 
 interface TaskListProps {
-  tasks: Task[];
+  tasks?: ScheduledTask[];
+  showWeatherIndicators?: boolean;
 }
 
 /**
  * Task List component that displays prioritized lawn care tasks
- * based on the user's lawn profile
+ * based on the user's lawn profile with weather adaptability
  */
-const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
+const TaskList: React.FC<TaskListProps> = ({ 
+  tasks: propTasks, 
+  showWeatherIndicators = true 
+}) => {
+  const [tasks, setTasks] = useState<ScheduledTask[]>(propTasks || []);
+  const [loading, setLoading] = useState<boolean>(!propTasks);
+  const [selectedTask, setSelectedTask] = useState<ScheduledTask | null>(null);
+  
+  // Load tasks from TaskSchedulerService if not provided as props
+  useEffect(() => {
+    if (propTasks) {
+      setTasks(propTasks);
+      return;
+    }
+    
+    const fetchTasks = async () => {
+      setLoading(true);
+      try {
+        const fetchedTasks = await getWeatherCompatibleTasks(mockUserData.location);
+        setTasks(fetchedTasks);
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchTasks();
+  }, [propTasks]);
+  
   // Format date to be more readable
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -81,6 +107,54 @@ const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
     
     return categoryMap[category] || category;
   };
+  
+  // Handle task completion
+  const handleCompleteTask = async (task: ScheduledTask) => {
+    try {
+      const updatedTask = { ...task, isCompleted: true };
+      await updateScheduledTask(updatedTask);
+      
+      // Update local state
+      setTasks(prevTasks => 
+        prevTasks.map(t => (t.id === task.id ? updatedTask : t))
+      );
+      
+      // Close detail view if this task was selected
+      if (selectedTask && selectedTask.id === task.id) {
+        setSelectedTask(updatedTask);
+      }
+    } catch (error) {
+      console.error('Error completing task:', error);
+    }
+  };
+  
+  // Weather icon component
+  const WeatherIcon = ({ condition }: { condition: string }) => {
+    const getWeatherIconPath = (condition: string) => {
+      // Simple mapping of conditions to SVG paths
+      if (condition.toLowerCase().includes('sun') || condition.toLowerCase().includes('clear')) {
+        return 'M12 2.25a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75ZM7.5 12a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM18.894 6.166a.75.75 0 0 0-1.06-1.06l-1.591 1.59a.75.75 0 1 0 1.06 1.061l1.591-1.59ZM21.75 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5H21a.75.75 0 0 1 .75.75ZM17.834 18.894a.75.75 0 0 0 1.06-1.06l-1.59-1.591a.75.75 0 1 0-1.061 1.06l1.59 1.591ZM12 18a.75.75 0 0 1 .75.75V21a.75.75 0 0 1-1.5 0v-2.25A.75.75 0 0 1 12 18ZM7.758 17.303a.75.75 0 0 0-1.061-1.06l-1.591 1.59a.75.75 0 0 0 1.06 1.061l1.591-1.59ZM6 12a.75.75 0 0 1-.75.75H3a.75.75 0 0 1 0-1.5h2.25A.75.75 0 0 1 6 12ZM6.697 7.757a.75.75 0 0 0 1.06-1.06l-1.59-1.591a.75.75 0 0 0-1.061 1.06l1.59 1.591Z';
+      } else if (condition.toLowerCase().includes('cloud') && !condition.toLowerCase().includes('rain')) {
+        return 'M2.25 15a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3v4.5a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V15Z';
+      } else if (condition.toLowerCase().includes('rain') || condition.toLowerCase().includes('drizzle')) {
+        return 'M15.75 12.75 18 10.5l-5.25-6-5.25 6 2.25 2.25m1.5 4.5 1.5-1.5m3-3 1.5-1.5m-9 3 1.5-1.5m-3-3 1.5-1.5M4.5 19.5h15M6.75 10.5l2.25-4.5';
+      } else {
+        return 'M2.25 15a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3v4.5a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V15Z';
+      }
+    };
+    
+    return (
+      <div style={{ 
+        width: '16px', 
+        height: '16px', 
+        color: condition.toLowerCase().includes('rain') ? colors.blue[500] : colors.status.warning 
+      }}>
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d={getWeatherIconPath(condition)} />
+        </svg>
+      </div>
+    );
+  };
 
   return (
     <div style={{
@@ -137,132 +211,424 @@ const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
       
       {/* Task List */}
       <div style={{ padding: 0 }}>
-        <ul style={{ 
-          listStyleType: 'none',
-          margin: 0,
-          padding: 0
-        }}>
-          {tasks.map((task) => (
-            <li 
-              key={task.id}
-              style={{
-                padding: '1rem',
-                borderBottom: '1px solid',
-                borderBottomColor: colors.gray[100],
-                opacity: task.isCompleted ? 0.7 : 1,
-                backgroundColor: task.isCompleted ? colors.gray[50] : 'white'
-              }}
-            >
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
-                {/* Task Icon */}
-                <div style={{
-                  minWidth: '40px',
-                  height: '40px',
-                  borderRadius: '0.375rem',
-                  backgroundColor: colors.green[100],
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: colors.green[600]
-                }}>
-                  <div style={{ width: '24px', height: '24px' }}>
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d={getIconPath(task.icon)} />
-                    </svg>
-                  </div>
-                </div>
-                
-                {/* Task Content */}
-                <div style={{ flex: 1 }}>
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'flex-start', 
-                    justifyContent: 'space-between',
-                    marginBottom: '0.25rem'
-                  }}>
-                    <h4 style={{ 
-                      fontSize: '1rem',
-                      fontWeight: 600,
-                      color: task.isCompleted ? colors.gray[500] : colors.gray[800],
-                      textDecoration: task.isCompleted ? 'line-through' : 'none',
-                      margin: 0
-                    }}>
-                      {task.title}
-                    </h4>
-                    
-                    <span style={{
-                      marginLeft: '0.5rem',
-                      paddingLeft: '0.5rem',
-                      paddingRight: '0.5rem',
-                      paddingTop: '0.25rem',
-                      paddingBottom: '0.25rem',
-                      borderRadius: '9999px',
-                      backgroundColor: getPriorityColor(task.priority).bg,
-                      color: getPriorityColor(task.priority).text,
-                      fontSize: '0.75rem',
-                      textTransform: 'capitalize'
-                    }}>
-                      {task.priority}
-                    </span>
-                  </div>
-                  
-                  <p style={{ 
-                    fontSize: '0.875rem',
-                    color: task.isCompleted ? colors.gray[500] : colors.gray[600],
-                    marginBottom: '0.5rem',
-                    textDecoration: task.isCompleted ? 'line-through' : 'none',
-                    margin: '0 0 0.5rem 0'
-                  }}>
-                    {task.description}
-                  </p>
-                  
+        {loading ? (
+          <div style={{ 
+            padding: '2rem', 
+            textAlign: 'center', 
+            color: colors.gray[500]
+          }}>
+            Loading tasks...
+          </div>
+        ) : tasks.length === 0 ? (
+          <div style={{ 
+            padding: '2rem', 
+            textAlign: 'center', 
+            color: colors.gray[500]
+          }}>
+            No tasks available.
+          </div>
+        ) : (
+          <ul style={{ 
+            listStyleType: 'none',
+            margin: 0,
+            padding: 0
+          }}>
+            {tasks.map((task) => (
+              <li 
+                key={task.id}
+                onClick={() => setSelectedTask(task)}
+                style={{
+                  padding: '1rem',
+                  borderBottom: '1px solid',
+                  borderBottomColor: colors.gray[100],
+                  opacity: task.isCompleted ? 0.7 : 1,
+                  backgroundColor: task.isCompleted ? colors.gray[50] : 'white',
+                  cursor: 'pointer',
+                  position: 'relative'
+                }}
+              >
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  {/* Task Icon */}
                   <div style={{
+                    minWidth: '40px',
+                    height: '40px',
+                    borderRadius: '0.375rem',
+                    backgroundColor: colors.green[100],
                     display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: colors.green[600]
                   }}>
-                    <div style={{
-                      display: 'flex',
-                      gap: '0.5rem',
-                      alignItems: 'center'
+                    <div style={{ width: '24px', height: '24px' }}>
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d={getIconPath(task.icon)} />
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  {/* Task Content */}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'flex-start', 
+                      justifyContent: 'space-between',
+                      marginBottom: '0.25rem'
                     }}>
-                      <span style={{
-                        backgroundColor: colors.gray[100],
-                        color: colors.gray[700],
-                        paddingLeft: '0.5rem',
-                        paddingRight: '0.5rem',
-                        paddingTop: '0.125rem',
-                        paddingBottom: '0.125rem',
-                        borderRadius: '9999px',
-                        fontSize: '0.75rem'
+                      <h4 style={{ 
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        color: task.isCompleted ? colors.gray[500] : colors.gray[800],
+                        textDecoration: task.isCompleted ? 'line-through' : 'none',
+                        margin: 0
                       }}>
-                        {getCategoryName(task.category)}
-                      </span>
+                        {task.title}
+                        
+                        {/* Weather Indicator (if enabled and applicable) */}
+                        {showWeatherIndicators && task.weatherCondition && (
+                          <span style={{ 
+                            marginLeft: '0.5rem',
+                            position: 'relative',
+                            top: '2px'
+                          }}>
+                            <WeatherIcon condition={task.weatherCondition} />
+                          </span>
+                        )}
+                      </h4>
                       
                       <span style={{
+                        marginLeft: '0.5rem',
+                        paddingLeft: '0.5rem',
+                        paddingRight: '0.5rem',
+                        paddingTop: '0.25rem',
+                        paddingBottom: '0.25rem',
+                        borderRadius: '9999px',
+                        backgroundColor: getPriorityColor(task.priority).bg,
+                        color: getPriorityColor(task.priority).text,
                         fontSize: '0.75rem',
-                        color: colors.gray[500]
+                        textTransform: 'capitalize'
                       }}>
-                        Due: {formatDate(task.dueDate)}
+                        {task.priority}
                       </span>
                     </div>
                     
-                    <input 
-                      type="checkbox" 
-                      checked={task.isCompleted}
-                      readOnly
-                      style={{
-                        accentColor: colors.green[500]
-                      }}
-                      // In a real app, this would update task completion status
-                    />
+                    <p style={{ 
+                      fontSize: '0.875rem',
+                      color: task.isCompleted ? colors.gray[500] : colors.gray[600],
+                      marginBottom: '0.5rem',
+                      textDecoration: task.isCompleted ? 'line-through' : 'none',
+                      margin: '0 0 0.5rem 0'
+                    }}>
+                      {task.description}
+                    </p>
+                    
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        gap: '0.5rem',
+                        alignItems: 'center'
+                      }}>
+                        <span style={{
+                          backgroundColor: colors.gray[100],
+                          color: colors.gray[700],
+                          paddingLeft: '0.5rem',
+                          paddingRight: '0.5rem',
+                          paddingTop: '0.125rem',
+                          paddingBottom: '0.125rem',
+                          borderRadius: '9999px',
+                          fontSize: '0.75rem'
+                        }}>
+                          {getCategoryName(task.category)}
+                        </span>
+                        
+                        <span style={{
+                          fontSize: '0.75rem',
+                          color: colors.gray[500]
+                        }}>
+                          Due: {formatDate(task.dueDate)}
+                        </span>
+                        
+                        {/* Weather appropriateness indicator */}
+                        {showWeatherIndicators && task.isWeatherAppropriate !== undefined && (
+                          <span style={{
+                            fontSize: '0.75rem',
+                            color: task.isWeatherAppropriate ? colors.green[600] : colors.status.warning,
+                          }}>
+                            {task.isWeatherAppropriate 
+                              ? "✓ Weather appropriate" 
+                              : "⚠ Check weather"
+                            }
+                          </span>
+                        )}
+                      </div>
+                      
+                      <input 
+                        type="checkbox" 
+                        checked={task.isCompleted}
+                        onChange={() => handleCompleteTask(task)}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          accentColor: colors.green[500]
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      
+      {/* Task Detail Modal */}
+      {selectedTask && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000,
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            padding: '1.5rem',
+            width: '90%',
+            maxWidth: '500px',
+            maxHeight: '80vh',
+            overflowY: 'auto',
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              marginBottom: '1rem',
+            }}>
+              {/* Task Icon */}
+              <div style={{
+                minWidth: '48px',
+                height: '48px',
+                borderRadius: '0.375rem',
+                backgroundColor: colors.green[100],
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: colors.green[600]
+              }}>
+                <div style={{ width: '28px', height: '28px' }}>
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d={getIconPath(selectedTask.icon)} />
+                  </svg>
+                </div>
+              </div>
+              
+              <div>
+                <h3 style={{ 
+                  margin: '0 0 0.25rem 0',
+                  fontSize: '1.25rem',
+                  fontWeight: 600,
+                  color: colors.gray[800],
+                }}>
+                  {selectedTask.title}
+                </h3>
+                
+                <div style={{
+                  display: 'flex',
+                  gap: '0.5rem',
+                  alignItems: 'center',
+                }}>
+                  <span style={{
+                    backgroundColor: colors.gray[100],
+                    color: colors.gray[700],
+                    paddingLeft: '0.5rem',
+                    paddingRight: '0.5rem',
+                    paddingTop: '0.125rem',
+                    paddingBottom: '0.125rem',
+                    borderRadius: '9999px',
+                    fontSize: '0.75rem'
+                  }}>
+                    {getCategoryName(selectedTask.category)}
+                  </span>
+                  
+                  <span style={{
+                    paddingLeft: '0.5rem',
+                    paddingRight: '0.5rem',
+                    paddingTop: '0.125rem',
+                    paddingBottom: '0.125rem',
+                    borderRadius: '9999px',
+                    backgroundColor: getPriorityColor(selectedTask.priority).bg,
+                    color: getPriorityColor(selectedTask.priority).text,
+                    fontSize: '0.75rem',
+                    textTransform: 'capitalize'
+                  }}>
+                    {selectedTask.priority} Priority
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div style={{ marginBottom: '1rem' }}>
+              <h4 style={{ 
+                margin: '0 0 0.5rem 0',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                color: colors.gray[700],
+              }}>
+                Description
+              </h4>
+              
+              <p style={{ 
+                margin: 0,
+                fontSize: '1rem',
+                color: colors.gray[700],
+              }}>
+                {selectedTask.description}
+              </p>
+            </div>
+            
+            <div style={{ marginBottom: '1rem' }}>
+              <h4 style={{ 
+                margin: '0 0 0.5rem 0',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                color: colors.gray[700],
+              }}>
+                Dates
+              </h4>
+              
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: '0.875rem',
+                color: colors.gray[700],
+              }}>
+                <div>
+                  <div style={{ fontWeight: 500 }}>Due Date:</div>
+                  <div>{formatDate(selectedTask.dueDate)}</div>
+                </div>
+                
+                <div>
+                  <div style={{ fontWeight: 500 }}>Scheduled Date:</div>
+                  <div>{formatDate(selectedTask.scheduledDate)}</div>
+                </div>
+                
+                {selectedTask.suggestedDate && (
+                  <div>
+                    <div style={{ fontWeight: 500 }}>Suggested Date:</div>
+                    <div>{formatDate(selectedTask.suggestedDate)}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {showWeatherIndicators && selectedTask.weatherCondition && (
+              <div style={{ 
+                marginBottom: '1rem',
+                padding: '0.75rem',
+                borderRadius: '0.25rem',
+                backgroundColor: selectedTask.isWeatherAppropriate 
+                  ? `${colors.green[500]}10` // 10% opacity
+                  : `${colors.status.warning}10`, // 10% opacity
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+              }}>
+                <WeatherIcon condition={selectedTask.weatherCondition} />
+                <div>
+                  <div style={{ 
+                    fontWeight: 500,
+                    color: selectedTask.isWeatherAppropriate 
+                      ? colors.green[700]
+                      : colors.status.warning,
+                  }}>
+                    Weather: {selectedTask.weatherCondition}
+                  </div>
+                  <div style={{ 
+                    fontSize: '0.875rem',
+                    color: colors.gray[700],
+                  }}>
+                    {selectedTask.isWeatherAppropriate
+                      ? "Current weather conditions are appropriate for this task."
+                      : "Consider rescheduling due to current weather conditions."
+                    }
                   </div>
                 </div>
               </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+            )}
+            
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '0.75rem',
+              marginTop: '1.5rem',
+            }}>
+              <button
+                onClick={() => setSelectedTask(null)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.25rem',
+                  border: `1px solid ${colors.gray[300]}`,
+                  backgroundColor: 'white',
+                  color: colors.gray[700],
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                Close
+              </button>
+              
+              {!selectedTask.isCompleted && (
+                <button
+                  onClick={() => {
+                    handleCompleteTask(selectedTask);
+                  }}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    borderRadius: '0.25rem',
+                    border: 'none',
+                    backgroundColor: colors.green[500],
+                    color: 'white',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Mark Complete
+                </button>
+              )}
+              
+              {!selectedTask.isCompleted && (
+                <button
+                  onClick={() => {
+                    // Close this modal and let the user navigate to the scheduler
+                    setSelectedTask(null);
+                    // In a real implementation, this would navigate to the scheduler with this task pre-selected
+                    console.log('Navigating to scheduler for task:', selectedTask.id);
+                  }}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    borderRadius: '0.25rem',
+                    border: 'none',
+                    backgroundColor: colors.blue[500],
+                    color: 'white',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Reschedule
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* View All Link */}
       <div style={{

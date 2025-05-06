@@ -54,6 +54,19 @@
 - Easier learning curve for team members
 - Need to establish patterns for store organization
 
+### [2025-05-06 00:42:00] - Version Control Workflow
+**Decision**: Implement GitFlow-based version control workflow with GitHub, using separate branches for development, features, bugfixes, and releases.
+
+**Rationale**: A structured Git workflow ensures code quality, facilitates collaboration, and reduces the risk of conflicts or regressions when multiple features are being developed simultaneously.
+
+**Implications**:
+- Master branch reserved for production-ready code
+- Development branch serves as integration branch for features
+- Feature branches created for all new functionality
+- Pull request process enforces code reviews
+- Standardized templates improve issue and PR quality
+- Documentation provides clear guidance for new team members
+
 ## Feature Decisions
 
 ### [2025-05-05 14:48:00] - Visual Timeline Implementation
@@ -119,3 +132,87 @@
 - We'll need to implement a proper solution in a future task
 - Documented the issue in a commented-out wrapper component for future reference
 - Will need to carefully test UI components that relied on Chakra theming
+
+### [2025-05-06 01:00:00] - Firebase Authentication Implementation
+**Decision**: Implement Firebase Authentication with Zustand stores for state management.
+
+**Rationale**: Firebase Authentication provides a secure, scalable solution that integrates well with Firestore for data persistence. Using Zustand for state management allows for clean separation of concerns and simple integration with React components.
+
+**Implications**:
+- User data is securely stored in Firebase
+- Authentication state is managed through a dedicated Zustand store
+- Protected routes only allow access to authenticated users
+- Onboarding data can be preserved and attached to user accounts
+- User profiles can be extended with lawn-specific data
+- Firestore integration allows for future data synchronization
+
+### [2025-05-06 01:07:00] - Firebase Mock Implementation for Local Testing
+**Decision**: Implement a mock implementation of Firebase Authentication and Firestore database for local testing.
+
+**Rationale**: A mock implementation allows developers to test the application locally without requiring an actual Firebase project setup. This improves development efficiency by enabling quick testing of authentication flows and data persistence without external dependencies.
+
+**Implications**:
+- Mock authentication allows testing login/signup flows without real Firebase credentials
+- In-memory storage simulates Firestore database functionality
+- Configurable flag allows easy switching between mock and real implementations
+- Added network delay simulation for realistic UX testing
+- Console logging provides visibility into mock operations
+- All Firebase-dependent components can be tested locally
+
+### [2025-05-06 01:45:00] - OpenWeatherMap API Integration Strategy
+**Decision**: Implement OpenWeatherMap API integration with a mock/real toggle pattern following the Firebase service architecture, including local caching and context-aware lawn care tips.
+
+**Rationale**: Weather data is a critical component for providing accurate, timely lawn care recommendations. The integration needs to balance API usage costs with data freshness while ensuring a responsive user experience even with network issues.
+
+**Implications**:
+- Consistent mock/real toggle pattern enables easy local development without API credentials
+- 30-minute caching strategy reduces API calls while maintaining relevant data
+- Geocoding component allows location-based recommendations from user profiles
+- Weather-based lawn care tips provide actionable, contextual information
+- Graceful fallback to mock data maintains UX even during API failures
+- Implementation provides foundation for future weather-dependent task scheduling
+
+### [2025-05-06 10:31:00] - Weather-Adaptive Task Scheduling System Architecture
+**Decision**: Implement a weather-adaptive task scheduling system with a TaskSchedulerService, a mobile-first calendar component, and enhanced TaskList integration.
+
+**Rationale**: Weather conditions significantly impact the timing and effectiveness of lawn care activities. A scheduling system that adapts to weather conditions helps users optimize their lawn care routine while providing a better user experience for planning activities.
+
+**Implications**:
+- Need a TaskSchedulerService with mock/real toggle pattern for consistent development experience
+- Requires weather compatibility logic to determine optimal task timing
+- Mobile-first calendar view optimized for touch interactions in outdoor settings
+- LocalStorage persistence with future Firebase sync capability
+- Enhanced TaskList component with visual weather indicators
+- Task detail view with rescheduling options
+- Weather condition mapping to task categories for intelligent scheduling
+
+### [2025-05-06 10:42:00] - Implementation of Weather-Adaptive Task Scheduling System
+**Decision**: Implement the Weather-Adaptive Task Scheduling feature with TypeScript interfaces, a service layer, UI components, and dashboard integration.
+
+**Rationale**: A comprehensive implementation ensures proper type safety, separation of concerns, and a user-friendly interface for scheduling weather-dependent lawn care tasks.
+
+**Implications**:
+- Created dedicated TypeScript interfaces in scheduler.ts for type safety and documentation
+- Implemented TaskSchedulerService following the established service pattern with mock/real toggle
+- Built weather compatibility mapping system to match task categories with optimal weather conditions
+- Created a mobile-first TaskScheduler component with calendar visualization and touch-friendly interactions
+- Enhanced the TaskList component with weather indicators and detailed task view
+- Added tab navigation in the Dashboard for switching between list and calendar views
+- Used localStorage for task persistence with future Firebase synchronization capability
+- Implemented task detail view with rescheduling options based on weather forecasts
+
+### [2025-05-06 11:19:00] - Lawn Progress Gallery Implementation Approach
+**Decision**: Implement the Lawn Progress Gallery feature with TypeScript interfaces, GalleryService with mock/real implementation pattern, and modular UI components.
+
+**Rationale**: Visual timeline tracking is a key differentiator for LawnSync, enabling users to see the progress of their lawn care efforts. The implementation follows established project patterns while providing a rich, intuitive interface for photo management.
+
+**Implications**:
+- Created dedicated TypeScript interfaces for photos and comparisons
+- Implemented GalleryService with consistent mock/real toggle pattern for development and testing
+- Built local storage persistence with localStorage for MVP, designed for future Firebase Storage integration
+- Developed PhotoGallery component with filtering and camera/upload functionality
+- Created PhotoCompare component with interactive before/after slider
+- Integrated gallery components into the Dashboard with tabbed navigation
+- Enhanced QuickActions with shortcuts for capturing new lawn photos
+- Mobile-first implementation with touch gestures for swiping through photos
+- Enabled offline viewing of previously captured photos

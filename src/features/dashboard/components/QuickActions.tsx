@@ -1,11 +1,16 @@
 import React from 'react';
 import colors from '../../../theme/foundations/colors';
+import { takePhoto, uploadPhoto, getPhotoWeatherData } from '../../../lib/galleryService';
 
 /**
  * Quick Action buttons component
  * Displays common task buttons for fast access to frequent actions
  */
-const QuickActions: React.FC = () => {
+interface QuickActionsProps {
+  onNavigateView?: (view: 'list' | 'calendar' | 'gallery' | 'compare' | 'recommendations') => void;
+}
+
+const QuickActions: React.FC<QuickActionsProps> = ({ onNavigateView }) => {
   // Array of quick actions
   const actions = [
     {
@@ -41,6 +46,71 @@ const QuickActions: React.FC = () => {
       bgColor: colors.blue[50],
     },
   ];
+
+  // Handle action button click
+  const handleActionClick = async (actionId: string) => {
+    switch (actionId) {
+      case 'log-activity':
+        console.log('Log activity clicked');
+        break;
+      case 'view-plan':
+        if (onNavigateView) {
+          onNavigateView('calendar');
+        }
+        break;
+      case 'take-photo':
+        if (onNavigateView) {
+          onNavigateView('gallery');
+        }
+        // You can also trigger the photo capture action directly here
+        // Uncomment this if you want the button to immediately open camera
+        /*
+        try {
+          const file = await takePhoto();
+          if (file) {
+            // Get current date/time
+            const now = new Date();
+            const dateTaken = now.toISOString();
+            
+            // Get weather data
+            const weatherData = await getPhotoWeatherData();
+            
+            // Create basic tags (season, time of day)
+            const month = now.getMonth();
+            let season: string;
+            if (month >= 2 && month <= 4) season = 'spring';
+            else if (month >= 5 && month <= 7) season = 'summer';
+            else if (month >= 8 && month <= 10) season = 'fall';
+            else season = 'winter';
+            
+            const hour = now.getHours();
+            let timeOfDay: string;
+            if (hour >= 5 && hour < 12) timeOfDay = 'morning';
+            else if (hour >= 12 && hour < 17) timeOfDay = 'afternoon';
+            else timeOfDay = 'evening';
+            
+            // Upload photo
+            await uploadPhoto(file, {
+              dateTaken,
+              title: `Lawn Photo - ${now.toLocaleDateString()}`,
+              tags: [season, timeOfDay],
+              weather: weatherData || undefined
+            });
+          }
+        } catch (error) {
+          console.error('Error taking photo:', error);
+        }
+        */
+        break;
+      case 'ask-advice':
+        if (onNavigateView) {
+          onNavigateView('recommendations');
+        }
+        break;
+      default:
+        break;
+    }
+  };
 
   return (
     <div style={{
@@ -88,8 +158,9 @@ const QuickActions: React.FC = () => {
         padding: '1rem'
       }}>
         {actions.map((action) => (
-          <div 
+          <div
             key={action.id}
+            onClick={() => handleActionClick(action.id)}
             style={{
               display: 'flex',
               flexDirection: 'column',
