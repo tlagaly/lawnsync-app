@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Project specific files/directories to ignore
+memory-bank/
+projectBrief.md
