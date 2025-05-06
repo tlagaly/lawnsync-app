@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 // Temporarily using direct HTML/CSS instead of Chakra UI due to compatibility issues with v3.17.0
 // import { Box, Flex } from '@chakra-ui/react';
 import DashboardHeader from './components/DashboardHeader';
+import PlantIdentificationView from './components/PlantIdentificationView';
 import WeatherCard from './components/WeatherCard';
 import TaskList from './components/TaskList';
 import TaskScheduler from './components/TaskScheduler';
@@ -28,7 +29,7 @@ const DashboardContainer: React.FC = () => {
   const [isLoadingWeather, setIsLoadingWeather] = useState(true);
   const [tasks, setTasks] = useState<ScheduledTask[]>([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(true);
-  const [activeView, setActiveView] = useState<'list' | 'calendar' | 'gallery' | 'compare' | 'recommendations'>('list');
+  const [activeView, setActiveView] = useState<'list' | 'calendar' | 'gallery' | 'compare' | 'recommendations' | 'identify-plant'>('list');
 
   useEffect(() => {
     // Fetch weather data for user location
@@ -309,6 +310,14 @@ const DashboardContainer: React.FC = () => {
               {activeView === 'gallery' && <PhotoGallery />}
               {activeView === 'compare' && <PhotoCompare />}
               {activeView === 'recommendations' && <RecommendationList />}
+              {activeView === 'identify-plant' && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <PlantIdentificationView
+                    userId={userData.username} // Use username as identifier
+                    location={userData.location}
+                  />
+                </div>
+              )}
             </>
           )}
           
