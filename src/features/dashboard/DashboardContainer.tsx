@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 // Temporarily using direct HTML/CSS instead of Chakra UI due to compatibility issues with v3.17.0
 // import { Box, Flex } from '@chakra-ui/react';
-import DashboardHeader from './components/DashboardHeader';
-import WeatherCard from './components/WeatherCard';
-import TaskList from './components/TaskList';
-import ProgressTracker from './components/ProgressTracker';
-import QuickActions from './components/QuickActions';
-import { mockUserData, mockWeatherData, mockTasks } from './mockData';
+import DashboardHeader from './components/DashboardHeader.js';
+import WeatherCard from './components/WeatherCard.js';
+import TaskList from './components/TaskList.js';
+import ProgressTracker from './components/ProgressTracker.js';
+import QuickActions from './components/QuickActions.js';
+import { mockUserData, mockTasks } from './mockData.js';
+import { getWeatherForLocation } from '../../lib/weatherService.js';
+import type { WeatherData } from '../../lib/weatherService.js';
 
 /**
  * Dashboard Container - Main dashboard screen after onboarding
@@ -15,8 +17,26 @@ import { mockUserData, mockWeatherData, mockTasks } from './mockData';
 const DashboardContainer: React.FC = () => {
   // Load mock data - would be replaced with API calls
   const userData = mockUserData;
-  const weatherData = mockWeatherData;
   const tasks = mockTasks;
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [isLoadingWeather, setIsLoadingWeather] = useState(true);
+
+  useEffect(() => {
+    // Fetch weather data for user location
+    const fetchWeatherData = async () => {
+      try {
+        setIsLoadingWeather(true);
+        const weather = await getWeatherForLocation(userData.location);
+        setWeatherData(weather);
+      } catch (error) {
+        console.error('Error fetching weather data:', error);
+      } finally {
+        setIsLoadingWeather(false);
+      }
+    };
+
+    fetchWeatherData();
+  }, [userData.location]);
 
   return (
     <div
@@ -48,7 +68,19 @@ const DashboardContainer: React.FC = () => {
           }}
         >
           {/* Weather Summary Card */}
-          <WeatherCard weather={weatherData} />
+          {isLoadingWeather ? (
+            <div style={{
+              backgroundColor: "white",
+              borderRadius: "8px",
+              padding: "20px",
+              textAlign: "center",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.12)"
+            }}>
+              Loading weather data...
+            </div>
+          ) : weatherData && (
+            <WeatherCard weather={weatherData} />
+          )}
           
           {/* Task List Component */}
           <TaskList tasks={tasks} />

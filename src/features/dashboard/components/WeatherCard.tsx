@@ -1,29 +1,12 @@
 import React from 'react';
 // Temporarily using direct HTML/CSS instead of Chakra UI due to compatibility issues
 // import { Box, Flex, Text, Grid, GridItem, Heading } from '@chakra-ui/react';
-import colors from '../../../theme/foundations/colors';
+import colors from '../../../theme/foundations/colors.js';
+import type { WeatherData } from '../../../lib/weatherService.js';
+import { getWeatherBasedLawnTip } from '../../../lib/weatherService.js';
 
 interface WeatherCardProps {
-  weather: {
-    current: {
-      temp: number;
-      condition: string;
-      humidity: number;
-      windSpeed: number;
-      icon: string;
-    };
-    forecast: Array<{
-      day: string;
-      high: number;
-      low: number;
-      condition: string;
-      icon: string;
-    }>;
-    rainfall: {
-      last7Days: number;
-      projected7Days: number;
-    };
-  };
+  weather: WeatherData;
 }
 
 /**
@@ -263,7 +246,7 @@ const WeatherCard: React.FC<WeatherCardProps> = ({ weather }) => {
             color: colors.blue[700]
           }}
         >
-          <span style={{ fontWeight: "500" }}>Lawn Tip:</span> Ideal weather for watering your lawn. Plan to water early tomorrow morning.
+          <span style={{ fontWeight: "500" }}>Lawn Tip:</span> {getWeatherBasedLawnTip(weather)}
         </div>
       </div>
     </div>
