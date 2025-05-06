@@ -7,7 +7,7 @@ import { takePhoto, uploadPhoto, getPhotoWeatherData } from '../../../lib/galler
  * Displays common task buttons for fast access to frequent actions
  */
 interface QuickActionsProps {
-  onNavigateView?: (view: 'list' | 'calendar' | 'gallery' | 'compare') => void;
+  onNavigateView?: (view: 'list' | 'calendar' | 'gallery' | 'compare' | 'recommendations') => void;
 }
 
 const QuickActions: React.FC<QuickActionsProps> = ({ onNavigateView }) => {
@@ -103,7 +103,9 @@ const QuickActions: React.FC<QuickActionsProps> = ({ onNavigateView }) => {
         */
         break;
       case 'ask-advice':
-        console.log('Ask advice clicked');
+        if (onNavigateView) {
+          onNavigateView('recommendations');
+        }
         break;
       default:
         break;

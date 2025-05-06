@@ -9,6 +9,7 @@ import ProgressTracker from './components/ProgressTracker';
 import QuickActions from './components/QuickActions';
 import PhotoGallery from './components/PhotoGallery';
 import PhotoCompare from './components/PhotoCompare';
+import RecommendationList from './components/RecommendationList';
 import { mockUserData, mockTasks } from './mockData';
 import { getWeatherForLocation } from '../../lib/weatherService';
 import { getScheduledTasks, getWeatherCompatibleTasks } from '../../lib/taskSchedulerService';
@@ -27,7 +28,7 @@ const DashboardContainer: React.FC = () => {
   const [isLoadingWeather, setIsLoadingWeather] = useState(true);
   const [tasks, setTasks] = useState<ScheduledTask[]>([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(true);
-  const [activeView, setActiveView] = useState<'list' | 'calendar' | 'gallery' | 'compare'>('list');
+  const [activeView, setActiveView] = useState<'list' | 'calendar' | 'gallery' | 'compare' | 'recommendations'>('list');
 
   useEffect(() => {
     // Fetch weather data for user location
@@ -256,8 +257,41 @@ const DashboardContainer: React.FC = () => {
             </button>
           </div>
           
+          {/* Add Recommendation Tab */}
+          <button
+            onClick={() => setActiveView('recommendations')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0.75rem 1rem',
+              marginTop: '0.5rem',
+              border: 'none',
+              borderRadius: '0.5rem',
+              backgroundColor: activeView === 'recommendations' ? colors.blue[500] : colors.blue[50],
+              color: activeView === 'recommendations' ? 'white' : colors.blue[700],
+              fontWeight: 500,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.12)'
+            }}
+          >
+            <span style={{
+              display: 'inline-flex',
+              color: 'currentColor',
+              width: '20px',
+              height: '20px',
+              marginRight: '0.5rem'
+            }}>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z" />
+              </svg>
+            </span>
+            AI Recommendations
+          </button>
+          
           {/* Content Views */}
-          {isLoadingTasks && activeView !== 'gallery' && activeView !== 'compare' ? (
+          {isLoadingTasks && activeView !== 'gallery' && activeView !== 'compare' && activeView !== 'recommendations' ? (
             <div style={{
               backgroundColor: "white",
               borderRadius: "8px",
@@ -274,6 +308,7 @@ const DashboardContainer: React.FC = () => {
               {activeView === 'calendar' && <TaskScheduler />}
               {activeView === 'gallery' && <PhotoGallery />}
               {activeView === 'compare' && <PhotoCompare />}
+              {activeView === 'recommendations' && <RecommendationList />}
             </>
           )}
           
