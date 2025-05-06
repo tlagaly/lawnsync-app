@@ -16,6 +16,7 @@ const OnboardingContainer: React.FC = () => {
   const [location, setLocation] = useState('')
   const [lawnType, setLawnType] = useState('')
   const [goals, setGoals] = useState<string[]>([])
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false)
 
   // List of steps in the onboarding process
   const steps = ['Welcome', 'Location', 'Lawn Type', 'Goals', 'Review']
@@ -25,9 +26,26 @@ const OnboardingContainer: React.FC = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
     } else {
-      // Navigate to dashboard when onboarding is complete
-      navigate('/dashboard')
+      // When onboarding is complete, show signup prompt instead of direct navigation
+      setShowSignupPrompt(true)
     }
+  }
+
+  // Handle account creation - save onboarding data to localStorage for later use
+  const handleCreateAccount = () => {
+    const onboardingData = {
+      location,
+      lawnType,
+      goals,
+      timestamp: Date.now()
+    }
+    localStorage.setItem('lawnsync_onboarding_data', JSON.stringify(onboardingData))
+    navigate('/signup')
+  }
+
+  // Skip account creation and continue as guest
+  const handleContinueAsGuest = () => {
+    navigate('/dashboard')
   }
 
   // Handle navigation to previous step
@@ -140,6 +158,62 @@ const OnboardingContainer: React.FC = () => {
   }
 
   const screenProps = getScreenProps()
+
+  // Render signup prompt if onboarding is complete
+  if (showSignupPrompt) {
+    return (
+      <div style={{
+        maxWidth: '550px',
+        margin: '0 auto',
+        padding: '20px',
+        textAlign: 'center'
+      }}>
+        <h2 style={{ marginBottom: '16px' }}>Your Lawn Care Plan is Ready!</h2>
+        <p style={{ marginBottom: '24px' }}>
+          Create an account to save your personalized lawn care plan and track your progress over time.
+        </p>
+        
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          maxWidth: '400px',
+          margin: '0 auto'
+        }}>
+          <button
+            onClick={handleCreateAccount}
+            style={{
+              padding: '12px 20px',
+              backgroundColor: '#48BB78',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              fontSize: '16px'
+            }}
+          >
+            Create Account
+          </button>
+          
+          <button
+            onClick={handleContinueAsGuest}
+            style={{
+              padding: '12px 20px',
+              backgroundColor: 'transparent',
+              color: '#2D3748',
+              border: '1px solid #CBD5E0',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold'
+            }}
+          >
+            Continue as Guest
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <OnboardingLayout

@@ -209,12 +209,56 @@
 - Historical weather data for analysis
 - Weather alerts affecting lawn care activities
 - Seasonal trend analysis for long-term planning
+- Mock/real toggle pattern for local development without API credentials
+- Caching strategy with 30-minute TTL to balance freshness with API usage
+- Graceful error handling with fallback to mock data
+- Context-aware lawn care tips based on current and forecast conditions
+
+### Weather-Adaptive Task Scheduling Pattern
+- Type-based interface definitions for robust scheduling system
+- Service layer with mock/real toggle following project patterns
+- Weather compatibility matrix mapping task categories to optimal conditions
+- Scoring algorithm to determine task appropriateness based on weather
+- Mobile-first calendar interface with touch-optimized controls
+- Visual weather indicators integrated directly into task representation
+- Task detail view with weather context and rescheduling options
+- Tab-based navigation between list and calendar views
+- Local storage persistence with future Firebase synchronization
+- Personalized recommendations based on location-specific weather conditions
 
 ### Image Processing Pipeline
 - Secure image upload and storage
 - Analysis for problem identification
 - Before/after comparison processing
 - Metadata extraction and tagging
+
+## Version Control Patterns
+
+### Branch Strategy
+- Master branch contains only production-ready code
+- Development branch serves as integration branch
+- Feature branches for new functionality (feature/*)
+- Bugfix branches for non-critical issues (bugfix/*)
+- Hotfix branches for critical production fixes (hotfix/*)
+
+### Commit Conventions
+- Semantic commit messages with prefixes (Feature:, Fix:, Docs:, etc.)
+- Descriptive commit messages explaining what and why
+- Related issue numbers referenced in commits
+- Small, focused commits for easier review and rollback
+
+### Pull Request Workflow
+- Standardized PR template with description, type, and tests
+- Required code review by at least one team member
+- Automated checks must pass before merging
+- Issues linked to PRs for traceability
+- Clean commit history maintained via squash merges
+
+### Issue Management
+- Standardized templates for bugs and feature requests
+- Consistent labeling for triage and categorization
+- Issues linked to corresponding branches and PRs
+- Closing issues automatically via commit messages
 
 ## Memory Bank Management
 
@@ -244,6 +288,35 @@
 - Maintain parallel implementations where necessary for critical components
 - Prioritize stability of user-facing features over architectural purity
 
+## Development and Testing Patterns
+
+### Mock Implementation Pattern
+- Create mockable interfaces for external services
+- Implement in-memory equivalents of cloud services
+- Provide runtime toggle between real and mock implementations
+- Add simulated network delays for realistic testing
+- Use console logging for visibility into mock operations
+- Maintain data consistency across mock implementations
+
+### Firebase Mock Implementation
+- Mock Authentication with in-memory user storage
+- Mock Firestore with JavaScript objects
+- Toggle between real Firebase and mock with USE_MOCK flags
+- Simulate network delays for realistic UX testing
+- Maintain consistency in error handling behavior
+- Allow testing of the entire application flow without external services
+
+### Local-First Development
+- Design components to work with both local and cloud data
+- Implement offline-first approach for core features
+- Synchronize data when connectivity is restored
+- Test functionality in disconnected scenarios
+- Cache external API responses for development efficiency
+
 [2025-05-05 14:52:00] - Initial system patterns documentation
 [2025-05-05 23:57:00] - Added Memory Bank management patterns and workarounds for file operation limitations
 [2025-05-06 00:20:38] - Added UI framework compatibility management patterns and documented approach to handle Chakra UI compatibility issues
+[2025-05-06 00:44:00] - Added Version Control Patterns section documenting Git workflow practices and conventions
+[2025-05-06 01:09:00] - Added Development and Testing Patterns section with Mock Implementation Pattern for Firebase Authentication and Firestore
+[2025-05-06 01:45:00] - Extended Weather Data Integration pattern with OpenWeatherMap mock/real toggle, caching, and context-aware recommendations
+[2025-05-06 10:49:00] - Added Weather-Adaptive Task Scheduling Pattern documenting the implementation approach, including type-based interfaces, weather compatibility scoring, and mobile-first UI components
