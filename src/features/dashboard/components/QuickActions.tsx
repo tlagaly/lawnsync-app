@@ -7,7 +7,7 @@ import { takePhoto, uploadPhoto, getPhotoWeatherData } from '../../../lib/galler
  * Displays common task buttons for fast access to frequent actions
  */
 interface QuickActionsProps {
-  onNavigateView?: (view: 'list' | 'calendar' | 'gallery' | 'compare' | 'recommendations') => void;
+  onNavigateView?: (view: 'list' | 'calendar' | 'gallery' | 'compare' | 'recommendations' | 'identify-plant') => void;
 }
 
 const QuickActions: React.FC<QuickActionsProps> = ({ onNavigateView }) => {
@@ -28,6 +28,14 @@ const QuickActions: React.FC<QuickActionsProps> = ({ onNavigateView }) => {
       icon: 'M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z',
       color: colors.blue[500],
       bgColor: colors.blue[50],
+    },
+    {
+      id: 'identify-plant',
+      label: 'Identify Plant',
+      description: 'Identify weeds, diseases, or grass types',
+      icon: 'M12 22q-2.05 0-3.9-.788-1.85-.787-3.175-2.137-1.325-1.35-2.1-3.175Q2 14.075 2 12t.825-3.9q.825-1.85 2.125-3.175Q6.25 3.575 8.1 2.787 9.95 2 12 2t3.9.787q1.85.788 3.175 2.138 1.325 1.35 2.1 3.175Q22 9.925 22 12t-.825 3.9q-.825 1.85-2.125 3.175Q17.75 20.425 15.9 21.213 14.05 22 12 22zm0-8q.425 0 .713-.288Q13 13.425 13 13t-.287-.713Q12.425 12 12 12t-.712.287Q11 12.575 11 13t.288.712Q11.575 14 12 14z',
+      color: colors.green[600],
+      bgColor: colors.green[50],
     },
     {
       id: 'take-photo',
@@ -56,6 +64,11 @@ const QuickActions: React.FC<QuickActionsProps> = ({ onNavigateView }) => {
       case 'view-plan':
         if (onNavigateView) {
           onNavigateView('calendar');
+        }
+        break;
+      case 'identify-plant':
+        if (onNavigateView) {
+          onNavigateView('identify-plant');
         }
         break;
       case 'take-photo':
