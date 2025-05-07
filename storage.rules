@@ -1,0 +1,45 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    function isValidImageSize() {
+      // Limit image size to 5MB
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+    
+    // Default deny all access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+    
+    // User profile photos
+    match /user_photos/{userId}/{fileName} {
+      allow read: if isAuthenticated(); // All authenticated users can view profile photos
+      allow write: if isOwner(userId) && isImage() && isValidImageSize();
+    }
+    
+    // Lawn progress photos
+    match /lawn_photos/{userId}/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isImage() && isValidImageSize();
+    }
+    
+    // Plant identification photos
+    match /plant_identifications/{userId}/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isImage() && isValidImageSize();
+    }
+  }
+}
