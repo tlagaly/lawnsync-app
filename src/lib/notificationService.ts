@@ -1,26 +1,30 @@
-import { v4 as uuidv4 } from 'uuid';
-import { mockUserData } from '../features/dashboard/mockData';
-import { getWateringSchedules } from './wateringService';
-import type { WeatherData } from './weatherService';
-import { getWeatherForLocation } from './weatherService';
+/**
+ * NotificationService - Handles notification creation, delivery, and management
+ * Implements a mock/real toggle pattern for testing and production
+ */
+
+import { 
+  getFCMToken,
+  initializeNotifications
+} from './notificationIntegration';
 import type {
   Notification,
-  NotificationType,
-  NotificationPriority,
-  NotificationDeliveryMethod,
-  NotificationPreferences,
-  NotificationGroup,
   NotificationFilterOptions,
+  NotificationPreferences,
   NotificationTriggerEvent,
-  NotificationDeliveryResponse
+  NotificationDeliveryMethod,
+  NotificationType,
+  NotificationDeliveryResponse,
+  NotificationGroup
 } from '../types/notification';
+import { v4 as uuidv4 } from 'uuid';
 
 // Toggle between mock and real implementation
 const USE_MOCK_NOTIFICATIONS = true;
 
-// LocalStorage keys for persistence
-const NOTIFICATIONS_STORAGE_KEY = 'lawnSync_notifications';
-const NOTIFICATION_PREFS_STORAGE_KEY = 'lawnSync_notificationPrefs';
+// Default notification storage keys
+const NOTIFICATION_STORAGE_KEY = 'lawnSync_notifications';
+const NOTIFICATION_PREFS_KEY = 'lawnSync_notificationPrefs';
 
 // Default notification preferences
 const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
@@ -32,324 +36,172 @@ const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
     end: '07:00'
   },
   typePreferences: {
-    'scheduled_task': {
+    scheduled_task: {
       enabled: true,
       priority: 'medium',
-      deliveryMethods: ['in_app']
+      deliveryMethods: ['in_app', 'push']
     },
-    'weather_alert': {
+    weather_alert: {
       enabled: true,
       priority: 'high',
-      deliveryMethods: ['in_app']
+      deliveryMethods: ['in_app', 'push']
     },
-    'watering_event': {
+    watering_event: {
       enabled: true,
       priority: 'medium',
-      deliveryMethods: ['in_app']
+      deliveryMethods: ['in_app', 'push']
     },
-    'seasonal_tip': {
+    watering_reminder: {
+      enabled: true,
+      priority: 'medium',
+      deliveryMethods: ['in_app', 'push']
+    },
+    watering_completed: {
       enabled: true,
       priority: 'low',
       deliveryMethods: ['in_app']
     },
-    'progress_update': {
+    watering_cancelled: {
+      enabled: true,
+      priority: 'medium',
+      deliveryMethods: ['in_app', 'push']
+    },
+    seasonal_tip: {
       enabled: true,
       priority: 'low',
       deliveryMethods: ['in_app']
     },
-    'system_alert': {
+    progress_update: {
+      enabled: true,
+      priority: 'low',
+      deliveryMethods: ['in_app']
+    },
+    system_alert: {
       enabled: true,
       priority: 'high',
-      deliveryMethods: ['in_app']
+      deliveryMethods: ['in_app', 'push']
     }
+  },
+  wateringNotificationSettings: {
+    reminderTiming: ['day_before', 'morning_of'],
+    notifyOnCompletion: true,
+    notifyOnCancellation: true,
+    notifyOnAdjustment: true,
+    minRainfallToNotify: 0.25
   }
 };
 
-// Generate a set of mock notifications for testing
-const generateMockNotifications = (): Notification[] => {
-  const today = new Date();
-  const notifications: Notification[] = [];
+/**
+ * Initialize the notification system
+ */
+export const initializeNotificationSystem = async (): Promise<boolean> => {
+  // First check if we already have notification preferences
+  const existingPrefs = await getNotificationPreferences();
+  if (!existingPrefs || !existingPrefs.typePreferences) {
+    // If not, initialize with default preferences
+    await setStoredNotificationPreferences(DEFAULT_NOTIFICATION_PREFERENCES);
+  }
+
+  // Initialize Firebase Cloud Messaging if needed
+  if (!USE_MOCK_NOTIFICATIONS) {
+    return initializeNotifications();
+  }
   
-  // Add scheduled task notification
-  notifications.push({
-    id: uuidv4(),
-    type: 'scheduled_task',
-    title: 'Mow the lawn today',
-    message: 'Weather conditions are optimal for mowing your lawn this afternoon.',
-    priority: 'medium',
-    createdAt: new Date(today.getTime() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-    isRead: false,
-    metadata: {
-      taskId: '12345',
-      weatherScore: 8.5
-    },
-    relatedEntityId: '12345',
-    relatedEntityType: 'task',
-    actionUrl: '/dashboard/tasks'
-  });
-  
-  // Add weather alert notification
-  notifications.push({
-    id: uuidv4(),
-    type: 'weather_alert',
-    title: 'Heavy rain expected',
-    message: 'Heavy rain forecasted for tomorrow. Consider rescheduling outdoor lawn activities.',
-    priority: 'high',
-    createdAt: new Date(today.getTime() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
-    isRead: true,
-    metadata: {
-      precipitation: 0.75,
-      weatherAlert: 'heavy_rain'
-    },
-    actionUrl: '/dashboard/weather'
-  });
-  
-  // Add watering event notification
-  notifications.push({
-    id: uuidv4(),
-    type: 'watering_event',
-    title: 'Watering schedule adjusted',
-    message: 'Your watering schedule has been adjusted due to forecasted rainfall. 25 gallons of water saved!',
-    priority: 'medium',
-    createdAt: new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-    isRead: false,
-    metadata: {
-      scheduleId: '789',
-      waterSaved: 25,
-      originalDate: new Date(today.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    relatedEntityId: '789',
-    relatedEntityType: 'watering_schedule',
-    actionUrl: '/dashboard/watering'
-  });
-  
-  // Add seasonal tip notification
-  notifications.push({
-    id: uuidv4(),
-    type: 'seasonal_tip',
-    title: 'Time for Spring overseeding',
-    message: 'Spring is a great time to overseed bare patches in your lawn. Our analysis shows your lawn could benefit from overseeding the front yard.',
-    priority: 'low',
-    createdAt: new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-    isRead: true,
-    metadata: {
-      season: 'spring',
-      lawnArea: 'front_yard'
-    },
-    actionUrl: '/dashboard/recommendations'
-  });
-  
-  // Add progress update notification
-  notifications.push({
-    id: uuidv4(),
-    type: 'progress_update',
-    title: 'Lawn health improving',
-    message: 'Your recent photos show a 15% improvement in lawn health since last month. Keep up the good work!',
-    priority: 'low',
-    createdAt: new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-    isRead: false,
-    metadata: {
-      improvementPercentage: 15,
-      comparisonPhotoIds: ['photo1', 'photo2']
-    },
-    actionUrl: '/dashboard/progress'
-  });
-  
-  return notifications;
+  console.log('Using mock notification system');
+  return true;
 };
 
+// STORAGE-RELATED FUNCTIONS
+
 /**
- * Load notifications from localStorage
+ * Get stored notifications from local storage
  */
-const loadNotificationsFromStorage = (): Notification[] => {
+export const getStoredNotifications = (): Notification[] => {
   try {
-    const storedData = localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
+    const storedData = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
     if (storedData) {
       return JSON.parse(storedData);
     }
   } catch (error) {
-    console.error('Error loading notifications from storage:', error);
+    console.error('Error retrieving stored notifications:', error);
   }
   return [];
 };
 
 /**
- * Save notifications to localStorage
+ * Set stored notifications in local storage
  */
-const saveNotificationsToStorage = (notifications: Notification[]): void => {
+export const setStoredNotifications = (notifications: Notification[]): void => {
   try {
-    localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(notifications));
+    localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(notifications));
   } catch (error) {
-    console.error('Error saving notifications to storage:', error);
+    console.error('Error storing notifications:', error);
   }
 };
 
 /**
- * Load notification preferences from localStorage
+ * Get stored notification preferences from local storage
  */
-const loadPreferencesFromStorage = (): NotificationPreferences | null => {
+export const getStoredNotificationPreferences = (): NotificationPreferences => {
   try {
-    const storedData = localStorage.getItem(NOTIFICATION_PREFS_STORAGE_KEY);
+    const storedData = localStorage.getItem(NOTIFICATION_PREFS_KEY);
     if (storedData) {
       return JSON.parse(storedData);
     }
   } catch (error) {
-    console.error('Error loading notification preferences from storage:', error);
+    console.error('Error retrieving notification preferences:', error);
   }
-  return null;
+  return DEFAULT_NOTIFICATION_PREFERENCES;
 };
 
 /**
- * Save notification preferences to localStorage
+ * Set stored notification preferences in local storage
  */
-const savePreferencesToStorage = (preferences: NotificationPreferences): void => {
+export const setStoredNotificationPreferences = (preferences: NotificationPreferences): void => {
   try {
-    localStorage.setItem(NOTIFICATION_PREFS_STORAGE_KEY, JSON.stringify(preferences));
+    localStorage.setItem(NOTIFICATION_PREFS_KEY, JSON.stringify(preferences));
   } catch (error) {
-    console.error('Error saving notification preferences to storage:', error);
+    console.error('Error storing notification preferences:', error);
   }
 };
 
 /**
- * Check if a notification should be delivered based on quiet hours
+ * Clear notification cache (useful for testing)
  */
-const shouldDeliverDuringQuietHours = (
-  preferences: NotificationPreferences, 
-  priority: NotificationPriority
-): boolean => {
-  if (!preferences.quietHours.enabled) {
-    return true;
-  }
-  
-  // Always deliver urgent notifications regardless of quiet hours
-  if (priority === 'urgent') {
-    return true;
-  }
-  
-  const now = new Date();
-  const currentHour = now.getHours();
-  const currentMinute = now.getMinutes();
-  const currentTime = currentHour * 60 + currentMinute;
-  
-  const quietStart = preferences.quietHours.start.split(':');
-  const quietStartTime = parseInt(quietStart[0]) * 60 + parseInt(quietStart[1]);
-  
-  const quietEnd = preferences.quietHours.end.split(':');
-  const quietEndTime = parseInt(quietEnd[0]) * 60 + parseInt(quietEnd[1]);
-  
-  // Handle cases where quiet hours span midnight
-  if (quietStartTime > quietEndTime) {
-    return currentTime < quietStartTime && currentTime >= quietEndTime;
-  } else {
-    return currentTime < quietStartTime || currentTime >= quietEndTime;
+export const clearNotificationCache = (): void => {
+  try {
+    localStorage.removeItem(NOTIFICATION_STORAGE_KEY);
+  } catch (error) {
+    console.error('Error clearing notification cache:', error);
   }
 };
 
-/**
- * Get all notifications for the current user
- */
-export const getNotifications = async (filters?: NotificationFilterOptions): Promise<Notification[]> => {
-  let notifications: Notification[];
-  
-  if (USE_MOCK_NOTIFICATIONS) {
-    console.log('Using mock notification data');
-    // Simulate a delay to mimic API call
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Generate or load mock notifications
-    const storedNotifications = loadNotificationsFromStorage();
-    notifications = storedNotifications.length > 0 ? storedNotifications : generateMockNotifications();
-    
-    // If first time, save generated notifications
-    if (storedNotifications.length === 0) {
-      saveNotificationsToStorage(notifications);
-    }
-  } else {
-    // In a real implementation, this would fetch from a database/API
-    // For now, we'll use localStorage
-    notifications = loadNotificationsFromStorage();
-    if (notifications.length === 0) {
-      notifications = generateMockNotifications();
-      saveNotificationsToStorage(notifications);
-    }
-  }
-  
-  // Apply filters if provided
-  if (filters) {
-    if (filters.types && filters.types.length > 0) {
-      notifications = notifications.filter(n => filters.types?.includes(n.type));
-    }
-    
-    if (filters.priorities && filters.priorities.length > 0) {
-      notifications = notifications.filter(n => filters.priorities?.includes(n.priority));
-    }
-    
-    if (filters.readStatus) {
-      if (filters.readStatus === 'read') {
-        notifications = notifications.filter(n => n.isRead);
-      } else if (filters.readStatus === 'unread') {
-        notifications = notifications.filter(n => !n.isRead);
-      }
-    }
-    
-    if (filters.dateRange) {
-      const fromDate = new Date(filters.dateRange.from).getTime();
-      const toDate = new Date(filters.dateRange.to).getTime();
-      
-      notifications = notifications.filter(n => {
-        const notificationDate = new Date(n.createdAt).getTime();
-        return notificationDate >= fromDate && notificationDate <= toDate;
-      });
-    }
-  }
-  
-  // Sort by creation date, newest first
-  return notifications.sort((a, b) => 
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
-};
+// MOCK IMPLEMENTATION FUNCTIONS
 
 /**
- * Get a single notification by id
+ * Create a mock notification
  */
-export const getNotificationById = async (id: string): Promise<Notification | null> => {
-  const notifications = await getNotifications();
-  return notifications.find(n => n.id === id) || null;
-};
-
-/**
- * Get count of unread notifications
- */
-export const getUnreadNotificationCount = async (): Promise<number> => {
-  const notifications = await getNotifications();
-  return notifications.filter(n => !n.isRead).length;
-};
-
-/**
- * Create a new notification
- */
-export const createNotification = async (event: NotificationTriggerEvent): Promise<Notification | null> => {
-  // Get user preferences
+const createMockNotification = async (
+  event: NotificationTriggerEvent
+): Promise<Notification> => {
   const preferences = await getNotificationPreferences();
   
   // Check if notifications are enabled globally
   if (!preferences.enabled) {
-    console.log('Notifications disabled globally');
-    return null;
+    throw new Error('Notifications are disabled');
   }
   
-  // Check if the specific notification type is enabled
-  const typePrefs = preferences.typePreferences[event.type];
-  if (!typePrefs.enabled) {
-    console.log(`Notifications for type ${event.type} are disabled`);
-    return null;
+  // Check if this notification type is enabled
+  const typeSettings = preferences.typePreferences[event.type];
+  if (!typeSettings || !typeSettings.enabled) {
+    throw new Error(`Notifications of type ${event.type} are disabled`);
   }
   
-  // Check quiet hours (except for urgent notifications)
-  if (event.priority !== 'urgent' && 
-      !shouldDeliverDuringQuietHours(preferences, event.priority)) {
-    console.log('Notification suppressed due to quiet hours');
-    return null;
+  // Check quiet hours
+  if (preferences.quietHours.enabled && 
+      event.priority !== 'urgent' && 
+      isInQuietHours(preferences.quietHours.start, preferences.quietHours.end)) {
+    throw new Error('Cannot send non-urgent notifications during quiet hours');
   }
   
   // Create the notification
@@ -358,226 +210,98 @@ export const createNotification = async (event: NotificationTriggerEvent): Promi
     type: event.type,
     title: event.title,
     message: event.message,
-    priority: event.priority,
     createdAt: new Date().toISOString(),
-    expiresAt: event.expiresAt,
+    priority: event.priority || typeSettings.priority,
     isRead: false,
-    metadata: event.metadata,
+    actionUrl: event.actionUrl,
+    metadata: event.metadata || {},
+    expiresAt: event.expiresAt,
     relatedEntityId: event.relatedEntityId,
-    relatedEntityType: event.relatedEntityType,
-    actionUrl: event.actionUrl
+    relatedEntityType: event.relatedEntityType
   };
   
-  // Save to storage
-  const notifications = await getNotifications();
-  notifications.unshift(notification);
-  saveNotificationsToStorage(notifications);
+  // Add to stored notifications
+  const notifications = getStoredNotifications();
+  setStoredNotifications([notification, ...notifications]);
   
-  // Deliver the notification based on delivery methods
-  await deliverNotification(notification, typePrefs.deliveryMethods);
+  // Simulate push notification for 'push' delivery method
+  if (typeSettings.deliveryMethods.includes('push') && 
+      preferences.deliveryMethods.includes('push')) {
+    console.log('MOCK - Sending push notification:', {
+      title: notification.title,
+      body: notification.message
+    });
+  }
+  
+  // Log notification creation
+  console.log('MOCK - Created notification:', notification);
   
   return notification;
 };
 
 /**
- * Deliver a notification via specified delivery methods
+ * Get mock notifications with filtering
  */
-export const deliverNotification = async (
-  notification: Notification, 
-  deliveryMethods: NotificationDeliveryMethod[]
-): Promise<NotificationDeliveryResponse[]> => {
-  const responses: NotificationDeliveryResponse[] = [];
+const getMockNotifications = async (
+  options?: NotificationFilterOptions
+): Promise<Notification[]> => {
+  let notifications = getStoredNotifications();
   
-  for (const method of deliveryMethods) {
-    try {
-      const timestamp = new Date().toISOString();
-      
-      switch (method) {
-        case 'in_app':
-          // In-app notifications are automatically stored and displayed
-          // No additional action needed
-          responses.push({
-            success: true,
-            notificationId: notification.id,
-            deliveryMethod: method,
-            timestamp
-          });
-          break;
-          
-        case 'push':
-          // Future implementation - push notifications
-          console.log('Push notifications not yet implemented');
-          responses.push({
-            success: false,
-            notificationId: notification.id,
-            deliveryMethod: method,
-            timestamp,
-            error: 'Push notifications not yet implemented'
-          });
-          break;
-          
-        case 'email':
-          // Future implementation - email notifications
-          console.log('Email notifications not yet implemented');
-          responses.push({
-            success: false,
-            notificationId: notification.id,
-            deliveryMethod: method,
-            timestamp,
-            error: 'Email notifications not yet implemented'
-          });
-          break;
-          
-        case 'sms':
-          // Future implementation - SMS notifications
-          console.log('SMS notifications not yet implemented');
-          responses.push({
-            success: false,
-            notificationId: notification.id,
-            deliveryMethod: method,
-            timestamp,
-            error: 'SMS notifications not yet implemented'
-          });
-          break;
-          
-        default:
-          responses.push({
-            success: false,
-            notificationId: notification.id,
-            deliveryMethod: method,
-            timestamp,
-            error: `Unknown delivery method: ${method}`
-          });
+  // Apply filters if provided
+  if (options) {
+    // Filter by type
+    if (options.types && options.types.length > 0) {
+      notifications = notifications.filter(n => options.types!.includes(n.type));
+    }
+    
+    // Filter by read status
+    if (options.readStatus) {
+      if (options.readStatus === 'read') {
+        notifications = notifications.filter(n => n.isRead);
+      } else if (options.readStatus === 'unread') {
+        notifications = notifications.filter(n => !n.isRead);
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      responses.push({
-        success: false,
-        notificationId: notification.id,
-        deliveryMethod: method,
-        timestamp: new Date().toISOString(),
-        error: errorMessage
+    }
+    
+    // Filter by priority
+    if (options.priorities && options.priorities.length > 0) {
+      notifications = notifications.filter(n => options.priorities!.includes(n.priority));
+    }
+    
+    // Filter by date range
+    if (options.dateRange) {
+      const fromDate = new Date(options.dateRange.from).getTime();
+      const toDate = new Date(options.dateRange.to).getTime();
+      
+      notifications = notifications.filter(n => {
+        const notificationDate = new Date(n.createdAt).getTime();
+        return notificationDate >= fromDate && notificationDate <= toDate;
       });
     }
-  }
-  
-  return responses;
-};
-
-/**
- * Mark a notification as read
- */
-export const markNotificationAsRead = async (id: string): Promise<boolean> => {
-  const notifications = await getNotifications();
-  const index = notifications.findIndex(n => n.id === id);
-  
-  if (index === -1) {
-    return false;
-  }
-  
-  notifications[index].isRead = true;
-  saveNotificationsToStorage(notifications);
-  return true;
-};
-
-/**
- * Mark all notifications as read
- */
-export const markAllNotificationsAsRead = async (): Promise<boolean> => {
-  const notifications = await getNotifications();
-  
-  const updatedNotifications = notifications.map(n => ({
-    ...n,
-    isRead: true
-  }));
-  
-  saveNotificationsToStorage(updatedNotifications);
-  return true;
-};
-
-/**
- * Delete a notification
- */
-export const deleteNotification = async (id: string): Promise<boolean> => {
-  const notifications = await getNotifications();
-  const filteredNotifications = notifications.filter(n => n.id !== id);
-  
-  if (filteredNotifications.length === notifications.length) {
-    return false; // No notification was deleted
-  }
-  
-  saveNotificationsToStorage(filteredNotifications);
-  return true;
-};
-
-/**
- * Clear all notifications
- */
-export const clearAllNotifications = async (): Promise<boolean> => {
-  saveNotificationsToStorage([]);
-  return true;
-};
-
-/**
- * Get notification preferences for the current user
- */
-export const getNotificationPreferences = async (): Promise<NotificationPreferences> => {
-  if (USE_MOCK_NOTIFICATIONS) {
-    // Simulate a delay to mimic API call
-    await new Promise(resolve => setTimeout(resolve, 200));
     
-    // Try to load from localStorage first
-    const storedPrefs = loadPreferencesFromStorage();
-    if (storedPrefs) {
-      return storedPrefs;
+    // Apply limit
+    if (options.limit && options.limit > 0) {
+      notifications = notifications.slice(0, options.limit);
     }
-    
-    // Return default preferences
-    return DEFAULT_NOTIFICATION_PREFERENCES;
   }
   
-  // In a real implementation, this would fetch from a database/API
-  // For now, we'll use localStorage or defaults
-  const storedPrefs = loadPreferencesFromStorage();
-  if (storedPrefs) {
-    return storedPrefs;
-  }
-  
-  // Save default preferences for future use
-  savePreferencesToStorage(DEFAULT_NOTIFICATION_PREFERENCES);
-  return DEFAULT_NOTIFICATION_PREFERENCES;
+  return notifications;
 };
 
 /**
- * Update notification preferences
+ * Group mock notifications by type
  */
-export const updateNotificationPreferences = async (preferences: Partial<NotificationPreferences>): Promise<NotificationPreferences> => {
-  const currentPrefs = await getNotificationPreferences();
-  
-  // Merge the new preferences with the current ones
-  const updatedPrefs: NotificationPreferences = {
-    ...currentPrefs,
-    ...preferences,
-    typePreferences: {
-      ...currentPrefs.typePreferences,
-      ...(preferences.typePreferences || {})
-    }
-  };
-  
-  savePreferencesToStorage(updatedPrefs);
-  return updatedPrefs;
-};
-
-/**
- * Group notifications by type for UI display
- */
-export const getNotificationGroups = async (): Promise<NotificationGroup[]> => {
-  const notifications = await getNotifications();
+const groupMockNotifications = async (
+  notifications: Notification[]
+): Promise<NotificationGroup[]> => {
   const groupMap: Record<string, NotificationGroup> = {};
   
+  // Group notifications by type
   for (const notification of notifications) {
     if (!groupMap[notification.type]) {
       groupMap[notification.type] = {
+        id: notification.type,
+        title: getNotificationTypeTitle(notification.type),
         type: notification.type,
         count: 0,
         notifications: [],
@@ -585,145 +309,379 @@ export const getNotificationGroups = async (): Promise<NotificationGroup[]> => {
       };
     }
     
-    groupMap[notification.type].count++;
-    groupMap[notification.type].notifications.push(notification);
+    const group = groupMap[notification.type];
+    group.notifications.push(notification);
+    group.count++;
     
-    // Update latest notification if this one is newer
-    if (new Date(notification.createdAt).getTime() > 
-        new Date(groupMap[notification.type].latestNotification.createdAt).getTime()) {
-      groupMap[notification.type].latestNotification = notification;
+    // Update latest timestamp
+    const notificationDate = new Date(notification.createdAt);
+    const latestDate = group.latestTimestamp 
+      ? new Date(group.latestTimestamp) 
+      : new Date(0);
+    
+    if (notificationDate > latestDate) {
+      group.latestTimestamp = notification.createdAt;
+      group.latestNotification = notification;
     }
   }
   
-  return Object.values(groupMap);
-};
-
-/**
- * Generate a task notification based on a scheduled task
- */
-export const createTaskNotification = async (
-  taskId: string,
-  taskTitle: string,
-  dueDate: string,
-  priority: 'low' | 'medium' | 'high'
-): Promise<Notification | null> => {
-  const notificationPriority: NotificationPriority = 
-    priority === 'high' ? 'high' : 
-    priority === 'medium' ? 'medium' : 'low';
-  
-  return createNotification({
-    type: 'scheduled_task',
-    title: `Task reminder: ${taskTitle}`,
-    message: `Your task "${taskTitle}" is scheduled for ${new Date(dueDate).toLocaleDateString()}.`,
-    priority: notificationPriority,
-    relatedEntityId: taskId,
-    relatedEntityType: 'task',
-    actionUrl: '/dashboard/tasks',
-    metadata: {
-      taskId,
-      dueDate
-    }
+  // Convert map to array and sort by latest timestamp
+  return Object.values(groupMap).sort((a, b) => {
+    const dateA = a.latestTimestamp ? new Date(a.latestTimestamp).getTime() : 0;
+    const dateB = b.latestTimestamp ? new Date(b.latestTimestamp).getTime() : 0;
+    return dateB - dateA;
   });
 };
 
 /**
- * Generate a weather alert notification
+ * Mark mock notification as read
  */
-export const createWeatherAlertNotification = async (
-  alert: string,
-  details: string,
-  severity: 'low' | 'medium' | 'high' | 'urgent'
+const markMockNotificationAsRead = async (
+  notificationId: string
 ): Promise<Notification | null> => {
-  return createNotification({
-    type: 'weather_alert',
-    title: `Weather alert: ${alert}`,
-    message: details,
-    priority: severity as NotificationPriority,
-    actionUrl: '/dashboard/weather',
-    metadata: {
-      alertType: alert,
-      severity
-    }
-  });
+  const notifications = getStoredNotifications();
+  const index = notifications.findIndex(n => n.id === notificationId);
+  
+  if (index === -1) {
+    return null;
+  }
+  
+  const updatedNotification = {
+    ...notifications[index],
+    isRead: true
+  };
+  
+  notifications[index] = updatedNotification;
+  setStoredNotifications(notifications);
+  
+  return updatedNotification;
 };
 
 /**
- * Generate a watering event notification
+ * Delete mock notification
  */
-export const createWateringEventNotification = async (
-  scheduleId: string,
-  eventType: 'scheduled' | 'adjusted' | 'completed',
-  details: {
-    date: string;
-    zones?: string[];
-    adjustmentReason?: string;
-    waterSaved?: number;
+const deleteMockNotification = async (
+  notificationId: string
+): Promise<boolean> => {
+  const notifications = getStoredNotifications();
+  const updatedNotifications = notifications.filter(n => n.id !== notificationId);
+  
+  if (updatedNotifications.length === notifications.length) {
+    return false;
   }
+  
+  setStoredNotifications(updatedNotifications);
+  return true;
+};
+
+/**
+ * Mark all mock notifications as read
+ */
+const markAllMockNotificationsAsRead = async (): Promise<number> => {
+  const notifications = getStoredNotifications();
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+  
+  const updatedNotifications = notifications.map(notification => ({
+    ...notification,
+    isRead: true
+  }));
+  
+  setStoredNotifications(updatedNotifications);
+  return unreadCount;
+};
+
+/**
+ * Get mock notification preferences
+ */
+const getMockNotificationPreferences = async (): Promise<NotificationPreferences> => {
+  return getStoredNotificationPreferences();
+};
+
+/**
+ * Update mock notification preferences
+ */
+const updateMockNotificationPreferences = async (
+  preferencesUpdate: Partial<NotificationPreferences>
+): Promise<NotificationPreferences> => {
+  const currentPreferences = getStoredNotificationPreferences();
+  
+  // Ensure wateringNotificationSettings is properly initialized if missing
+  const currentWateringSettings = currentPreferences.wateringNotificationSettings || {
+    reminderTiming: ['day_before'],
+    notifyOnCompletion: true,
+    notifyOnCancellation: true,
+    notifyOnAdjustment: true,
+    minRainfallToNotify: 0.25
+  };
+
+  // Merge the updates with current preferences
+  const updatedPreferences: NotificationPreferences = {
+    ...currentPreferences,
+    ...preferencesUpdate,
+    // Handle nested objects
+    quietHours: {
+      ...currentPreferences.quietHours,
+      ...(preferencesUpdate.quietHours || {})
+    },
+    typePreferences: {
+      ...currentPreferences.typePreferences,
+      ...(preferencesUpdate.typePreferences || {})
+    },
+    wateringNotificationSettings: {
+      ...currentWateringSettings,
+      ...(preferencesUpdate.wateringNotificationSettings || {}),
+      // Ensure reminderTiming is always an array
+      reminderTiming: preferencesUpdate.wateringNotificationSettings?.reminderTiming ||
+                      currentWateringSettings.reminderTiming
+    }
+  };
+  
+  setStoredNotificationPreferences(updatedPreferences);
+  return updatedPreferences;
+};
+
+// REAL IMPLEMENTATION FUNCTIONS
+// Note: These would connect to your backend notification service
+// For now they're mostly stubs that would need to be implemented with a real backend
+
+/**
+ * Create a real notification
+ */
+const createRealNotification = async (
+  event: NotificationTriggerEvent
+): Promise<Notification> => {
+  // This would call your backend API to create a notification
+  // For now, let's use the mock implementation
+  return createMockNotification(event);
+};
+
+/**
+ * Get real notifications with filtering
+ */
+const getRealNotifications = async (
+  options?: NotificationFilterOptions
+): Promise<Notification[]> => {
+  // This would call your backend API to get notifications
+  // For now, let's use the mock implementation
+  return getMockNotifications(options);
+};
+
+/**
+ * Group real notifications by type
+ */
+const groupRealNotifications = async (
+  notifications: Notification[]
+): Promise<NotificationGroup[]> => {
+  // This would call your backend API to group notifications
+  // For now, let's use the mock implementation
+  return groupMockNotifications(notifications);
+};
+
+/**
+ * Mark real notification as read
+ */
+const markRealNotificationAsRead = async (
+  notificationId: string
 ): Promise<Notification | null> => {
-  let title = '';
-  let message = '';
-  
-  switch (eventType) {
-    case 'scheduled':
-      title = 'Watering scheduled';
-      message = `Watering is scheduled for ${new Date(details.date).toLocaleDateString()}.`;
-      break;
-    case 'adjusted':
-      title = 'Watering schedule adjusted';
-      message = `Your watering schedule has been adjusted${details.adjustmentReason ? ` due to ${details.adjustmentReason}` : ''}.`;
-      if (details.waterSaved) {
-        message += ` ${details.waterSaved} gallons of water saved!`;
-      }
-      break;
-    case 'completed':
-      title = 'Watering completed';
-      message = `Watering has been completed for ${details.zones?.join(', ') || 'your lawn'}.`;
-      break;
-  }
-  
-  return createNotification({
-    type: 'watering_event',
-    title,
-    message,
-    priority: eventType === 'adjusted' ? 'high' : 'medium',
-    relatedEntityId: scheduleId,
-    relatedEntityType: 'watering_schedule',
-    actionUrl: '/dashboard/watering',
-    metadata: {
-      scheduleId,
-      eventType,
-      ...details
-    }
-  });
+  // This would call your backend API to mark a notification as read
+  // For now, let's use the mock implementation
+  return markMockNotificationAsRead(notificationId);
 };
 
 /**
- * Clear the notification cache
+ * Delete real notification
  */
-export const clearNotificationCache = (): void => {
-  try {
-    localStorage.removeItem(NOTIFICATIONS_STORAGE_KEY);
-    console.log('Notification cache cleared');
-  } catch (error) {
-    console.error('Error clearing notification cache:', error);
+const deleteRealNotification = async (
+  notificationId: string
+): Promise<boolean> => {
+  // This would call your backend API to delete a notification
+  // For now, let's use the mock implementation
+  return deleteMockNotification(notificationId);
+};
+
+/**
+ * Mark all real notifications as read
+ */
+const markAllRealNotificationsAsRead = async (): Promise<number> => {
+  // This would call your backend API to mark all notifications as read
+  // For now, let's use the mock implementation
+  return markAllMockNotificationsAsRead();
+};
+
+/**
+ * Get real notification preferences
+ */
+const getRealNotificationPreferences = async (): Promise<NotificationPreferences> => {
+  // This would call your backend API to get notification preferences
+  // For now, let's use the mock implementation
+  return getMockNotificationPreferences();
+};
+
+/**
+ * Update real notification preferences
+ */
+const updateRealNotificationPreferences = async (
+  preferencesUpdate: Partial<NotificationPreferences>
+): Promise<NotificationPreferences> => {
+  // This would call your backend API to update notification preferences
+  // For now, let's use the mock implementation
+  return updateMockNotificationPreferences(preferencesUpdate);
+};
+
+// HELPER FUNCTIONS
+
+/**
+ * Check if current time is in quiet hours
+ */
+const isInQuietHours = (startTime: string, endTime: string): boolean => {
+  const [startHour, startMinute] = startTime.split(':').map(Number);
+  const [endHour, endMinute] = endTime.split(':').map(Number);
+  
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  
+  // Convert all times to minutes since midnight for easier comparison
+  const startMinutes = startHour * 60 + startMinute;
+  const endMinutes = endHour * 60 + endMinute;
+  const currentMinutes = currentHour * 60 + currentMinute;
+  
+  // Handle the case where end time is earlier than start time (spans midnight)
+  if (endMinutes < startMinutes) {
+    return currentMinutes >= startMinutes || currentMinutes <= endMinutes;
+  }
+  
+  // Normal case
+  return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+};
+
+/**
+ * Get human-readable title for notification type
+ */
+const getNotificationTypeTitle = (type: NotificationType): string => {
+  switch (type) {
+    case 'scheduled_task':
+      return 'Task Reminders';
+    case 'weather_alert':
+      return 'Weather Alerts';
+    case 'watering_event':
+      return 'Watering Events';
+    case 'watering_reminder':
+      return 'Watering Reminders';
+    case 'watering_completed':
+      return 'Watering Completed';
+    case 'watering_cancelled':
+      return 'Watering Cancelled';
+    case 'seasonal_tip':
+      return 'Seasonal Tips';
+    case 'progress_update':
+      return 'Progress Updates';
+    case 'system_alert':
+      return 'System Alerts';
+    default:
+      return 'Notifications';
+  }
+};
+
+// PUBLIC API FUNCTIONS
+// These are exported and switch between mock/real implementations
+
+/**
+ * Create a notification
+ */
+export const createNotification = async (
+  event: NotificationTriggerEvent
+): Promise<Notification> => {
+  if (USE_MOCK_NOTIFICATIONS) {
+    return createMockNotification(event);
+  } else {
+    return createRealNotification(event);
   }
 };
 
 /**
- * Initialize the notification system by setting up event handlers
- * and checking for pending notifications
+ * Get notifications with optional filtering
  */
-export const initializeNotificationSystem = async (): Promise<void> => {
-  console.log('Initializing notification system');
-  
-  // Get user preferences to ensure they're saved to storage
-  await getNotificationPreferences();
-  
-  // Load notifications to ensure they're saved to storage
-  await getNotifications();
-  
-  // In a real implementation, this would set up event listeners
-  // for various services that trigger notifications
-  
-  console.log('Notification system initialized');
+export const getNotifications = async (
+  options?: NotificationFilterOptions
+): Promise<Notification[]> => {
+  if (USE_MOCK_NOTIFICATIONS) {
+    return getMockNotifications(options);
+  } else {
+    return getRealNotifications(options);
+  }
+};
+
+/**
+ * Group notifications by type
+ */
+export const groupNotifications = async (
+  notifications: Notification[]
+): Promise<NotificationGroup[]> => {
+  if (USE_MOCK_NOTIFICATIONS) {
+    return groupMockNotifications(notifications);
+  } else {
+    return groupRealNotifications(notifications);
+  }
+};
+
+/**
+ * Mark notification as read
+ */
+export const markNotificationAsRead = async (
+  notificationId: string
+): Promise<Notification | null> => {
+  if (USE_MOCK_NOTIFICATIONS) {
+    return markMockNotificationAsRead(notificationId);
+  } else {
+    return markRealNotificationAsRead(notificationId);
+  }
+};
+
+/**
+ * Delete notification
+ */
+export const deleteNotification = async (
+  notificationId: string
+): Promise<boolean> => {
+  if (USE_MOCK_NOTIFICATIONS) {
+    return deleteMockNotification(notificationId);
+  } else {
+    return deleteRealNotification(notificationId);
+  }
+};
+
+/**
+ * Mark all notifications as read
+ */
+export const markAllNotificationsAsRead = async (): Promise<number> => {
+  if (USE_MOCK_NOTIFICATIONS) {
+    return markAllMockNotificationsAsRead();
+  } else {
+    return markAllRealNotificationsAsRead();
+  }
+};
+
+/**
+ * Get notification preferences
+ */
+export const getNotificationPreferences = async (): Promise<NotificationPreferences> => {
+  if (USE_MOCK_NOTIFICATIONS) {
+    return getMockNotificationPreferences();
+  } else {
+    return getRealNotificationPreferences();
+  }
+};
+
+/**
+ * Update notification preferences
+ */
+export const updateNotificationPreferences = async (
+  preferencesUpdate: Partial<NotificationPreferences>
+): Promise<NotificationPreferences> => {
+  if (USE_MOCK_NOTIFICATIONS) {
+    return updateMockNotificationPreferences(preferencesUpdate);
+  } else {
+    return updateRealNotificationPreferences(preferencesUpdate);
+  }
 };

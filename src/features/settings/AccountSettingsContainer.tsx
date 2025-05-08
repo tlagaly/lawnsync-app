@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { useUserProfileStore } from '../../store/userProfileStore';
+import NotificationPreferencesView from './components/NotificationPreferencesView';
 
 /**
  * AccountSettingsContainer provides a simple user account management interface
@@ -182,7 +183,7 @@ const AccountSettingsContainer: React.FC = () => {
       </div>
       
       {/* Lawn profiles section - placeholder for future expansion */}
-      <div style={{ 
+      <div style={{
         backgroundColor: 'white',
         border: '1px solid #E2E8F0',
         borderRadius: '8px',
@@ -193,6 +194,9 @@ const AccountSettingsContainer: React.FC = () => {
         <p>You have {userProfile?.lawnProfiles?.length || 0} lawn profiles.</p>
         {/* Future implementation: List and manage lawn profiles */}
       </div>
+      
+      {/* Notification Preferences Section */}
+      <NotificationPreferencesView />
       
       {/* Logout button */}
       <div style={{ textAlign: 'center', marginTop: '40px' }}>

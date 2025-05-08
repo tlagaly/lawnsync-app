@@ -67,6 +67,30 @@
 - Standardized templates improve issue and PR quality
 - Documentation provides clear guidance for new team members
 
+### [2025-05-07 18:34:00] - Enhanced Git Workflow Automation
+**Decision**: Implement automated Git workflow scripts and Git hooks to enforce branch synchronization and prevent future sync issues.
+
+**Rationale**: After encountering branch synchronization issues, automated tools and enforced practices are needed to maintain repository health and ensure consistent development practices across the team.
+
+**Implications**:
+- Developed standardized scripts for daily branch synchronization
+- Automated branch cleanup after merges to prevent repository clutter
+- Created Git hooks to prevent direct pushing to master
+- Provided warnings when branches are out of sync
+- Moved Git workflow documentation to memory-bank for reference in all sessions
+- Enhanced workflow documentation with detailed procedures for branch lifecycle management
+
+### [2025-05-07 19:09:00] - Memory Bank Update Guidelines for Git Operations
+**Decision**: Do not update Memory Bank files for regular Git operations as they are not necessary for app development.
+
+**Rationale**: Routine Git operations like branch creation, commits, merges, and deletions are part of standard development workflow and don't represent significant project knowledge that needs to be preserved in Memory Bank.
+
+**Implications**:
+- Reduces unnecessary Memory Bank updates that don't add meaningful project context
+- Keeps Memory Bank focused on significant architectural and feature decisions
+- Streamlines development workflow by eliminating documentation steps for routine operations
+- Git operations should still be documented if they represent important pattern changes or workflow improvements
+
 ## Feature Decisions
 
 ### [2025-05-05 14:48:00] - Visual Timeline Implementation
@@ -216,3 +240,28 @@
 - Enhanced QuickActions with shortcuts for capturing new lawn photos
 - Mobile-first implementation with touch gestures for swiping through photos
 - Enabled offline viewing of previously captured photos
+
+### [2025-05-07 18:54:00] - OpenAI GPT-3.5 Turbo Integration Strategy
+**Decision**: Implement a production-ready OpenAI GPT-3.5 Turbo integration with environment-based API keys, rate limiting, enhanced caching, and comprehensive monitoring.
+
+**Rationale**: The AI recommendation engine is a key differentiator for LawnSync, requiring a robust implementation that balances API costs with performance and reliability while providing transparency into usage patterns.
+
+**Implications**:
+- Created an environment-specific API key management system for development, staging, and production
+- Implemented rate limiting to prevent excessive API usage and control costs
+- Enhanced caching system to minimize token usage while maintaining recommendation freshness
+- Added comprehensive error handling with automatic retries and fallback recommendations
+- Implemented detailed logging for monitoring and debugging
+- Developed an Admin dashboard for API usage monitoring
+- Created thorough documentation to ensure proper setup and usage
+
+### [2025-05-07 18:54:30] - Chakra UI Compatibility Resolution
+**Decision**: Implement a simplified Chakra UI wrapper to resolve compatibility issues with version 3.17.0.
+
+**Rationale**: The Chakra UI v3.17.0 package introduced API changes that caused TypeScript errors with the previous implementation. A simplified wrapper approach provides a clean solution that allows components to render correctly.
+
+**Implications**:
+- Created a native wrapper that applies basic styling without depending directly on the problematic Chakra UI provider
+- Extracted essential theme variables to ensure visual consistency
+- Maintains the ability to use the existing theme system
+- Provides a path forward until a more complete solution is implemented or Chakra UI issues are resolved

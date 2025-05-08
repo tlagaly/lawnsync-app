@@ -304,6 +304,19 @@
 - Bugfix branches for non-critical issues (bugfix/*)
 - Hotfix branches for critical production fixes (hotfix/*)
 
+### Git Automation Pattern
+- Automated script-based approach to Git workflow tasks
+- Daily synchronization routine with dedicated scripts
+- Branch cleanup automation after merge operations
+- Repository health monitoring with detailed checks
+- Pre-push and post-merge hooks for enforcement
+- Standardized branch lifecycle management
+- Complete remote/local synchronization protocols
+- Memory Bank integration for workflow documentation
+- Automated prevention of direct master pushes
+- Notification system for branch synchronization issues
+- Regular prune operations to clean stale references
+
 ### Commit Conventions
 - Semantic commit messages with prefixes (Feature:, Fix:, Docs:, etc.)
 - Descriptive commit messages explaining what and why
@@ -387,3 +400,41 @@
 [2025-05-06 12:36:00] - Added AI Recommendation Engine Pattern documenting the implementation approach, including OpenAI integration, caching, context-aware recommendations, and user feedback mechanisms
 [2025-05-06 16:00:41] - Added Plant Identification Pattern documenting the implementation approach, including Plant.id API integration, interfaces for different identification types, and mobile-first UI components with camera integration
 [2025-05-06 16:22:12] - Added Smart Watering Schedule Pattern documenting the implementation approach, including weather forecast integration, rainfall compensation, zone-based management, and water conservation metrics
+[2025-05-07 18:35:00] - Enhanced Git Automation Pattern with detailed implementation of scripts, hooks, and branch management protocols; moved Git workflow documentation to Memory Bank for project-wide reference
+
+## API Monitoring Pattern
+
+### Production-Ready OpenAI Integration Pattern
+- Environment-based API key management for seamless deployment across environments
+- Tiered key selection system (dev/staging/prod) based on environment variables
+- Rate limiting implementation with configurable request quotas
+- Request throttling with exponential backoff for API limit handling
+- Enhanced caching system with TTL and invalidation strategies
+- Fallback recommendations when API is unavailable or rate limited
+- Error classification for different response types (network, API limit, token limit)
+- Cost optimization through token usage monitoring and caching
+- Complete logging system for auditing and debugging
+
+### API Usage Monitoring Dashboard Pattern
+- Real-time usage statistics with visual metrics
+- API health monitoring with success rate tracking
+- Token usage tracking with cost estimation
+- Performance metrics including latency and error rates
+- Test interface for direct API interaction
+- Interactive visualization of API usage patterns
+- Rate limit monitoring with quota visualization
+- Daily, weekly, and monthly usage trends
+- Native HTML/CSS implementation for framework independence
+- Live testing functionality with response visualization
+
+### UI Framework Compatibility Pattern
+- Simplified wrapper components that avoid problematic framework APIs
+- Native HTML/CSS implementations for critical UI components
+- Theme application through direct styling rather than component props
+- Style extraction from theme objects for direct application
+- CSS-in-JS to inline style conversion for framework independence
+- Graceful degradation while maintaining core functionality
+- Extraction of essential design tokens for styling consistency
+- Common interface for both framework-based and native components
+
+[2025-05-07 18:55:00] - Added Production-Ready OpenAI Integration Pattern documenting enhanced GPT-3.5 Turbo integration, API Monitoring Dashboard Pattern, and UI Framework Compatibility Pattern; enhanced documentation on environment-based configuration, rate limiting, and fallback mechanisms

@@ -4,9 +4,9 @@ import {
   getNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
-  deleteNotification,
-  clearAllNotifications
+  deleteNotification
 } from '../../../lib/notificationService';
+import { processWateringScheduleNotifications } from '../../../lib/notificationIntegration';
 import NotificationItem from './NotificationItem';
 
 interface NotificationCenterProps {
@@ -80,12 +80,80 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose }) => {
     }
   };
 
-  const handleClearAll = async () => {
+  // New handlers for watering notification actions
+  const handleCompleteWatering = async (id: string) => {
     try {
-      await clearAllNotifications();
-      setNotifications([]);
+      const notification = notifications.find(n => n.id === id);
+      if (!notification || !notification.metadata?.scheduleId) return;
+      
+      // Process the watering schedule as completed
+      await processWateringScheduleNotifications({
+        id: parseInt(notification.metadata.scheduleId),
+        scheduledDate: notification.metadata.scheduledDate || new Date().toISOString(),
+        startTime: notification.metadata.startTime || '08:00',
+        duration: 30, // Default duration in minutes
+        zones: Array.isArray(notification.metadata.zones)
+          ? notification.metadata.zones.map((name, index) => ({
+              id: index + 1,
+              name,
+              area: 100, // Default area in square feet
+              wateringDepth: 1, // Default depth in inches
+              soilType: 'loam',
+              sunExposure: 'full',
+              slope: 'flat',
+              enabled: true
+            }))
+          : [],
+        isCompleted: false,
+        isAdjusted: false
+      }, 'complete');
+      
+      // Mark notification as read
+      await markNotificationAsRead(id);
+      setNotifications(notifications.map(n => {
+        if (n.id === id) {
+          return { ...n, isRead: true };
+        }
+        return n;
+      }));
     } catch (error) {
-      console.error('Error clearing all notifications:', error);
+      console.error('Error completing watering:', error);
+    }
+  };
+  
+  const handleSnoozeWatering = async (id: string) => {
+    try {
+      // Mark notification as read for now (in a real implementation, we would reschedule the notification)
+      await markNotificationAsRead(id);
+      setNotifications(notifications.map(n => {
+        if (n.id === id) {
+          return { ...n, isRead: true };
+        }
+        return n;
+      }));
+    } catch (error) {
+      console.error('Error snoozing watering notification:', error);
+    }
+  };
+  
+  const handleRescheduleWatering = async (id: string) => {
+    try {
+      const notification = notifications.find(n => n.id === id);
+      if (!notification || !notification.metadata?.scheduleId) return;
+      
+      // In a real implementation, this would open a dialog to reschedule
+      // For now, just mark as read and display a message
+      await markNotificationAsRead(id);
+      setNotifications(notifications.map(n => {
+        if (n.id === id) {
+          return { ...n, isRead: true };
+        }
+        return n;
+      }));
+      
+      alert('In a complete implementation, this would open a reschedule dialog');
+    } catch (error) {
+      console.error('Error rescheduling watering:', error);
     }
   };
 
@@ -94,6 +162,9 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose }) => {
     { value: 'scheduled_task', label: 'Tasks' },
     { value: 'weather_alert', label: 'Weather' },
     { value: 'watering_event', label: 'Watering' },
+    { value: 'watering_reminder', label: 'Reminders' },
+    { value: 'watering_completed', label: 'Completed' },
+    { value: 'watering_cancelled', label: 'Cancelled' },
     { value: 'seasonal_tip', label: 'Tips' },
     { value: 'progress_update', label: 'Progress' },
     { value: 'system_alert', label: 'System' }
@@ -217,17 +288,17 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose }) => {
               Mark all read
             </button>
             <button
-              onClick={handleClearAll}
+              onClick={handleMarkAllAsRead}
               style={{
                 padding: '6px 12px',
                 border: 'none',
                 backgroundColor: 'transparent',
-                color: '#E53E3E',
+                color: '#4A5568',
                 cursor: 'pointer',
                 fontSize: '12px'
               }}
             >
-              Clear all
+              Mark all read
             </button>
           </div>
         </div>
@@ -258,6 +329,9 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ onClose }) => {
               notification={notification}
               onRead={handleMarkAsRead}
               onDelete={handleDelete}
+              onComplete={handleCompleteWatering}
+              onSnooze={handleSnoozeWatering}
+              onReschedule={handleRescheduleWatering}
             />
           ))
         ) : (
