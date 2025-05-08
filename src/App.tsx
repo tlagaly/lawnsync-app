@@ -3,7 +3,9 @@ import OnboardingContainer from './features/onboarding/OnboardingContainer'
 import DashboardContainer from './features/dashboard/DashboardContainer'
 import AuthContainer from './features/auth/AuthContainer'
 import AccountSettingsContainer from './features/settings/AccountSettingsContainer'
+import AnalyticsFeedbackDemo from './features/demo/AnalyticsFeedbackDemo'
 import ProtectedRoute from './components/ProtectedRoute'
+import ChakraProviderWrapper from './ChakraProviderWrapper'
 import { useAuthStore } from './store/authStore'
 import './App.css'
 
@@ -67,6 +69,12 @@ function App() {
               <AccountSettingsContainer />
             </ProtectedRoute>
           }
+        />
+        
+        {/* Demo page for analytics and feedback system */}
+        <Route
+          path="/demo/analytics"
+          element={<AnalyticsFeedbackDemo />}
         />
         
         {/* Fallback for unknown routes */}

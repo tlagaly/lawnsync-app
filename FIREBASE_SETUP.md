@@ -117,13 +117,23 @@ For each Firebase project:
 3. Enable Email/Password authentication method
 4. Optional: Enable additional authentication methods (Google, Facebook)
 5. Configure authentication templates:
-   - Customize email verification template
-   - Set up password reset emails
-   - Configure multi-factor authentication settings
+   - Customize email verification template with LawnSync branding
+   - Add verification email subject line like "Verify your LawnSync account"
+   - Include instructions and benefits of verification in the email body
+   - Add a clear call-to-action button for verification
+   - Set up password reset emails with similar branding
+   - Configure multi-factor authentication settings if needed
 
 6. Set authentication session duration appropriate for each environment:
-   - Development: Longer session times for ease of testing
-   - Production: More secure, shorter session times
+   - Development: Longer session times for ease of testing (e.g., 30 days)
+   - Staging: Moderate session times (e.g., 14 days)
+   - Production: More secure, shorter session times (e.g., 7 days)
+
+7. Configure Email Verification Settings:
+   - Enable email verification requirements in Authentication > Settings
+   - Set up proper redirect URLs for after verification
+   - Test verification flow in each environment
+   - Configure custom email handlers if needed
 
 ## Step 6: Configure Firestore Database
 
@@ -150,6 +160,25 @@ For each Firebase project:
    firebase deploy --only firestore:rules
    ```
 
+7. Test security rules to ensure proper data protection:
+   ```bash
+   # Install the Firebase emulator suite if not already installed
+   npm install -g firebase-tools
+   
+   # Run the security rules tests
+   firebase emulators:start --only firestore,storage
+   
+   # In another terminal, test the rules
+   cd tests
+   npm run test:rules
+   ```
+
+8. Understand Security Rule Implementation:
+   - All write operations (except user creation) require email verification
+   - Role-based access control is implemented for admin users
+   - Reading own data is allowed without verification
+   - Special permissions for admins to access all data
+
 ## Step 7: Set Up Firebase Storage
 
 For each Firebase project:
@@ -168,6 +197,12 @@ For each Firebase project:
    firebase use <project-id>  # Select the appropriate project
    firebase deploy --only storage:rules
    ```
+
+7. Storage Rules Implementation Details:
+   - Email verification required for all uploads except profile photos
+   - Size and content-type restrictions for security
+   - Admin access for moderation purposes
+   - User isolation to prevent accessing others' files
 
 ## Step 8: Enable Firebase Analytics
 
@@ -203,11 +238,31 @@ For each Firebase project:
    npm run dev
    ```
 4. Test each Firebase service:
-   - Authentication: Register/login
-   - Firestore: Create/read documents
-   - Storage: Upload files
-   - Analytics: Verify events are logged (check Firebase console)
-   - Cloud Messaging: Test notifications
+   - Authentication:
+     - Register/login with email/password
+     - Verify email verification workflow functions correctly
+     - Test password reset functionality
+     - Ensure authentication state persists appropriately
+   
+   - Firestore:
+     - Create/read documents
+     - Test security rules with authenticated vs. unauthenticated users
+     - Test admin vs. regular user permissions
+     - Verify email verification restrictions work correctly
+   
+   - Storage:
+     - Upload files as verified user
+     - Attempt uploads as unverified user (should be rejected)
+     - Test admin access to files
+     - Verify proper content type restrictions
+   
+   - Analytics:
+     - Verify events are logged (check Firebase console)
+     - Test authenticated event tracking
+   
+   - Cloud Messaging:
+     - Test notifications
+     - Verify permission handling
 
 ## Firebase Emulator Suite (Recommended for Development)
 
@@ -250,6 +305,10 @@ For local development without using actual Firebase resources:
 - Use Firebase App Check for production to prevent abuse
 - Regularly backup Firestore data
 - Limit Firebase Admin SDK access to secure environments
+- Always test email verification flows in non-production environments first
+- Consider implementing custom email templates that match your brand
+- Test security rules extensively before deploying to production
+- Consider implementing Firebase App Check for additional security
 
 ## Additional Resources
 
@@ -259,3 +318,71 @@ For local development without using actual Firebase resources:
 - [Vite Environment Variables](https://vitejs.dev/guide/env-and-mode.html)
 - [Firebase App Check](https://firebase.google.com/docs/app-check)
 - [Firebase CLI Reference](https://firebase.google.com/docs/cli)
+- [Firebase Authentication](https://firebase.google.com/docs/auth)
+- [Email Verification Best Practices](https://firebase.google.com/docs/auth/web/manage-users#send_a_user_a_verification_email)
+- [Firebase Security Rules Testing](https://firebase.google.com/docs/rules/unit-tests)
+
+## Cross-Environment Security Rule Deployment
+
+To maintain consistent security across environments while allowing for environment-specific customizations:
+
+1. Create base security rule templates that are shared across environments
+2. Use environment-specific extensions for development, staging, and production
+3. Use a CI/CD pipeline to validate and deploy rules:
+
+```bash
+# Deploy rules to development environment
+firebase use development
+firebase deploy --only firestore:rules,storage:rules
+
+# Deploy rules to staging environment
+firebase use staging
+firebase deploy --only firestore:rules,storage:rules
+
+# Deploy rules to production environment (with additional approval step)
+firebase use production
+firebase deploy --only firestore:rules,storage:rules
+```
+
+### Testing Rules Before Deployment
+
+Always test security rules before deploying to production:
+
+```bash
+# Test rules locally
+firebase emulators:start --only firestore,storage
+# Run rule tests
+npm run test:rules
+```
+
+## Email Verification Implementation
+
+The LawnSync app implements email verification as follows:
+
+1. **Registration Flow**:
+   - User completes signup form
+   - Account is created with Firebase Authentication
+   - Verification email is automatically sent
+   - User is directed to verification screen
+   - User cannot access protected features until email is verified
+
+2. **Verification Screen**:
+   - Displays user's email address
+   - Provides instructions to check inbox/spam
+   - Offers option to resend verification email
+   - Explains benefits of verification
+
+3. **Login Flow**:
+   - User logs in with email/password
+   - If email is verified, redirected to dashboard
+   - If email is not verified, redirected to verification screen
+   - Access to data creation/modification is restricted until verified
+
+4. **Security Implementation**:
+   - Firestore rules check email verification status
+   - Storage rules check email verification status
+   - Profile data can be read without verification
+   - Most write operations require verification
+   - Admin users have elevated permissions
+
+This approach ensures user data is protected while providing a smooth onboarding experience.

@@ -19,11 +19,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onToggleMode, error }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) return;
+    if (!email || !password) {
+      return;
+    }
     
     setIsSubmitting(true);
     try {
       await signIn(email, password);
+      // If authentication successful, AuthContainer will handle redirects
+      // based on email verification status
     } catch (error) {
       // Error handling is managed by the auth store
       console.error('Login error:', error);
@@ -35,6 +39,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onToggleMode, error }) => {
   return (
     <div>
       <h2 style={{ textAlign: 'center', marginBottom: '24px' }}>Log in to LawnSync</h2>
+      
+      <p style={{ textAlign: 'center', marginBottom: '24px', color: '#4A5568' }}>
+        Access your personalized lawn care recommendations
+      </p>
       
       {error && (
         <div style={{ 

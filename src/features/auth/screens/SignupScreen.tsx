@@ -40,9 +40,18 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ onToggleMode, error }) => {
       return;
     }
     
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setFormError('Please enter a valid email address');
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       await signUp(email, password);
+      // If successful, the AuthContainer will handle redirects
+      // to email verification screen
     } catch (error) {
       // Error handling is managed by the auth store
       console.error('Signup error:', error);
@@ -57,6 +66,10 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ onToggleMode, error }) => {
   return (
     <div>
       <h2 style={{ textAlign: 'center', marginBottom: '24px' }}>Create your LawnSync account</h2>
+      
+      <p style={{ textAlign: 'center', marginBottom: '24px', color: '#4A5568' }}>
+        Get personalized lawn care recommendations based on your specific needs
+      </p>
       
       {displayError && (
         <div style={{ 
@@ -168,7 +181,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ onToggleMode, error }) => {
             marginBottom: '16px'
           }}
         >
-          {isSubmitting ? 'Creating account...' : 'Create Account'}
+          {isSubmitting ? 'Creating account...' : 'Create Account & Verify Email'}
         </button>
       </form>
       

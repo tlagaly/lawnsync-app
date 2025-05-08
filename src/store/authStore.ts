@@ -1,15 +1,16 @@
 import { create } from 'zustand';
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
   onAuthStateChanged,
+  sendEmailVerification,
   type User
 } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 
 // Configuration for mock mode (for local testing without Firebase)
-const USE_MOCK_AUTH = true;
+const USE_MOCK_AUTH = import.meta.env.VITE_USE_MOCK_FIREBASE === 'true';
 
 // Mock Firebase user interface
 interface MockUser {
@@ -17,6 +18,7 @@ interface MockUser {
   email: string | null;
   displayName: string | null;
   emailVerified: boolean;
+  sendEmailVerification: () => Promise<void>;
 }
 
 // Mock user for local testing
@@ -27,17 +29,20 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  isEmailVerified: boolean;
   signUp: (email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   logOut: () => Promise<void>;
+  sendVerificationEmail: () => Promise<void>;
   clearError: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isAuthenticated: false,
   isLoading: true,
   error: null,
+  isEmailVerified: false,
 
   signUp: async (email: string, password: string) => {
     try {
@@ -60,7 +65,18 @@ export const useAuthStore = create<AuthState>((set) => ({
           uid: 'mock-user-' + Math.random().toString(36).substr(2, 9),
           email: email,
           displayName: null,
-          emailVerified: false
+          emailVerified: false,
+          sendEmailVerification: async () => {
+            console.log('Mock email verification sent to', email);
+            // Simulate email verification after 2 seconds
+            setTimeout(() => {
+              if (mockUser) {
+                mockUser.emailVerified = true;
+                set({ isEmailVerified: true });
+                console.log('Mock email verified for', email);
+              }
+            }, 2000);
+          }
         };
         
         console.log('Mock signup successful:', mockUser);
@@ -68,15 +84,24 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({
           user: mockUser as any as User,
           isAuthenticated: true,
-          isLoading: false
+          isLoading: false,
+          isEmailVerified: false
         });
+        
+        // Send verification email automatically after signup
+        await get().sendVerificationEmail();
       } else {
         // Real Firebase implementation
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // Send email verification
+        await sendEmailVerification(userCredential.user);
+        
         set({
           user: userCredential.user,
           isAuthenticated: true,
-          isLoading: false
+          isLoading: false,
+          isEmailVerified: userCredential.user.emailVerified
         });
       }
     } catch (error) {
@@ -111,7 +136,17 @@ export const useAuthStore = create<AuthState>((set) => ({
           uid: 'mock-user-123',
           email: email,
           displayName: email.split('@')[0], // Use part of email as display name
-          emailVerified: true
+          emailVerified: true,
+          sendEmailVerification: async () => {
+            console.log('Mock email verification sent to', email);
+            setTimeout(() => {
+              if (mockUser) {
+                mockUser.emailVerified = true;
+                set({ isEmailVerified: true });
+                console.log('Mock email verified for', email);
+              }
+            }, 2000);
+          }
         };
         
         console.log('Mock login successful:', mockUser);
@@ -119,15 +154,18 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({
           user: mockUser as any as User,
           isAuthenticated: true,
-          isLoading: false
+          isLoading: false,
+          isEmailVerified: mockUser.emailVerified
         });
       } else {
         // Real Firebase implementation
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        
         set({
           user: userCredential.user,
           isAuthenticated: true,
-          isLoading: false
+          isLoading: false,
+          isEmailVerified: userCredential.user.emailVerified
         });
       }
     } catch (error) {
@@ -156,7 +194,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({
           user: null,
           isAuthenticated: false,
-          isLoading: false
+          isLoading: false,
+          isEmailVerified: false
         });
       } else {
         // Real Firebase implementation
@@ -164,13 +203,41 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({
           user: null,
           isAuthenticated: false,
-          isLoading: false
+          isLoading: false,
+          isEmailVerified: false
         });
       }
     } catch (error) {
       set({
         error: (error as Error).message,
         isLoading: false
+      });
+      throw error;
+    }
+  },
+
+  sendVerificationEmail: async () => {
+    try {
+      const { user } = get();
+      
+      if (!user) {
+        throw new Error('No user is currently logged in');
+      }
+      
+      if (USE_MOCK_AUTH) {
+        // For mock implementation
+        if (mockUser) {
+          await mockUser.sendEmailVerification();
+        }
+      } else {
+        // For real Firebase implementation
+        await sendEmailVerification(user);
+      }
+      
+      set({ error: null });
+    } catch (error) {
+      set({
+        error: (error as Error).message
       });
       throw error;
     }
@@ -189,7 +256,8 @@ if (USE_MOCK_AUTH) {
   useAuthStore.setState({
     user: null,
     isAuthenticated: false,
-    isLoading: false
+    isLoading: false,
+    isEmailVerified: false
   });
 } else {
   // Real Firebase auth state listener
@@ -197,7 +265,8 @@ if (USE_MOCK_AUTH) {
     useAuthStore.setState({
       user,
       isAuthenticated: !!user,
-      isLoading: false
+      isLoading: false,
+      isEmailVerified: user ? user.emailVerified : false
     });
   });
 }

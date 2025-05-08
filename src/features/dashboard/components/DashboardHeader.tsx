@@ -6,6 +6,7 @@ import colors from '../../../theme/foundations/colors';
 import NotificationBadge from './NotificationBadge';
 import NotificationCenter from './NotificationCenter';
 import NotificationToast from './NotificationToast';
+import ConnectionStatusIndicator from '../../../components/ConnectionStatusIndicator';
 import { getNotifications, initializeNotificationSystem } from '../../../lib/notificationService';
 import type { Notification } from '../../../types/notification';
 
@@ -109,6 +110,11 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ location, lawnType })
           </h1>
 
           <div style={{ display: 'flex', alignItems: 'center' }}>
+            {/* Connection Status Indicator */}
+            <div style={{ marginRight: '12px' }}>
+              <ConnectionStatusIndicator size="sm" showLabel={false} />
+            </div>
+            
             {/* Notification Badge */}
             <NotificationBadge onClick={toggleNotificationCenter} />
             
