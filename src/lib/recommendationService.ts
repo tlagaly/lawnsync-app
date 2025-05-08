@@ -10,21 +10,52 @@ import type {
   RecommendationPrompt
 } from '../types/recommendation';
 
-// Toggle between mock and real API implementation
-const USE_MOCK_RECOMMENDATIONS = true;
+// Environment configuration
+const NODE_ENV = import.meta.env.NODE_ENV || 'development';
+const USE_MOCK_RECOMMENDATIONS = import.meta.env.VITE_USE_MOCK_OPENAI === 'true';
 
-// OpenAI API configuration
-const OPENAI_API_KEY = 'demo-api-key-for-testing';
+// OpenAI API configuration based on environment
+const getApiKey = (): string => {
+  // Use environment-specific API key
+  switch (NODE_ENV) {
+    case 'production':
+      return import.meta.env.VITE_OPENAI_API_KEY_PROD;
+    case 'staging':
+      return import.meta.env.VITE_OPENAI_API_KEY_STAGING;
+    case 'development':
+    default:
+      return import.meta.env.VITE_OPENAI_API_KEY_DEV;
+  }
+};
+
+const OPENAI_API_KEY = getApiKey();
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+const OPENAI_MODEL = import.meta.env.VITE_OPENAI_MODEL || 'gpt-3.5-turbo';
+const OPENAI_TIMEOUT = parseInt(import.meta.env.VITE_OPENAI_TIMEOUT || '10000', 10);
+
+// Rate limiting configuration
+const HOURLY_RATE_LIMIT = parseInt(import.meta.env.VITE_OPENAI_RATE_LIMIT || '50', 10);
+const RATE_LIMIT_RESET_INTERVAL = 60 * 60 * 1000; // 1 hour in milliseconds
 
 // Default service options
 const DEFAULT_SERVICE_OPTIONS: RecommendationServiceOptions = {
   useOpenAI: true,
-  defaultModel: 'gpt-3.5-turbo',
-  maxCacheAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+  defaultModel: OPENAI_MODEL,
+  maxCacheAge: parseInt(import.meta.env.VITE_OPENAI_CACHE_DURATION || '86400000', 10), // Default 24 hours in milliseconds
   confidenceThreshold: 70,
   maxRecommendations: 5,
   enablePersonalization: true
+};
+
+// Rate limiting state
+interface RateLimitState {
+  callCount: number;
+  resetTime: number;
+}
+
+const rateLimitState: RateLimitState = {
+  callCount: 0,
+  resetTime: Date.now() + RATE_LIMIT_RESET_INTERVAL
 };
 
 // Cache mechanism
@@ -36,16 +67,139 @@ interface RecommendationCache {
   };
 }
 
-// LocalStorage keys
+// Storage and logging keys
 const STORAGE_KEYS = {
   RECOMMENDATIONS: 'lawnsync_recommendations',
   FEEDBACK: 'lawnsync_recommendation_feedback',
-  PROMPTS: 'lawnsync_recommendation_prompts'
+  PROMPTS: 'lawnsync_recommendation_prompts',
+  API_USAGE: 'lawnsync_openai_api_usage',
+  ERROR_LOG: 'lawnsync_openai_errors'
 };
 
-// Cache with 24-hour expiration by default
+// Cache with configurable expiration
 const recommendationCache: RecommendationCache = {};
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const CACHE_DURATION = DEFAULT_SERVICE_OPTIONS.maxCacheAge;
+
+// API usage tracking
+interface ApiUsageLog {
+  timestamp: number;
+  endpoint: string;
+  model: string;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  latency: number;
+  success: boolean;
+  error?: string;
+}
+
+// Error log for API calls
+interface ApiErrorLog {
+  timestamp: number;
+  endpoint: string;
+  error: string;
+  request?: any;
+  retryCount?: number;
+}
+
+/**
+ * Load API usage logs from storage
+ */
+const loadApiUsageLogs = (): ApiUsageLog[] => {
+  try {
+    const storedData = localStorage.getItem(STORAGE_KEYS.API_USAGE);
+    if (storedData) {
+      return JSON.parse(storedData);
+    }
+  } catch (error) {
+    console.error('Error loading API usage logs:', error);
+  }
+  return [];
+};
+
+/**
+ * Save API usage log
+ */
+const saveApiUsageLog = (log: ApiUsageLog): void => {
+  try {
+    const logs = loadApiUsageLogs();
+    logs.push(log);
+    
+    // Keep only the last 100 logs to prevent localStorage from growing too large
+    const trimmedLogs = logs.slice(-100);
+    localStorage.setItem(STORAGE_KEYS.API_USAGE, JSON.stringify(trimmedLogs));
+    
+    // Log to console in development environment
+    if (NODE_ENV === 'development') {
+      console.log('OpenAI API usage:', log);
+    }
+  } catch (error) {
+    console.error('Error saving API usage log:', error);
+  }
+};
+
+/**
+ * Log API error
+ */
+const logApiError = (error: ApiErrorLog): void => {
+  try {
+    const storedData = localStorage.getItem(STORAGE_KEYS.ERROR_LOG);
+    let logs: ApiErrorLog[] = [];
+    
+    if (storedData) {
+      logs = JSON.parse(storedData);
+    }
+    
+    logs.push(error);
+    
+    // Keep only the last 50 errors
+    const trimmedLogs = logs.slice(-50);
+    localStorage.setItem(STORAGE_KEYS.ERROR_LOG, JSON.stringify(trimmedLogs));
+    
+    // Always log errors to console
+    console.error('OpenAI API error:', error);
+  } catch (e) {
+    console.error('Error logging API error:', e);
+  }
+};
+
+/**
+ * Simple token count estimation (for tracking purposes)
+ * Note: This is an approximation - actual token count requires a tokenizer
+ */
+const estimateTokenCount = (text: string): number => {
+  // Rough approximation: 1 token ~= 4 characters for English text
+  return Math.ceil(text.length / 4);
+};
+
+/**
+ * Check and update rate limits
+ * Returns true if under limit, false if limit exceeded
+ */
+const checkRateLimit = (): boolean => {
+  const now = Date.now();
+  
+  // Reset counter if past reset time
+  if (now > rateLimitState.resetTime) {
+    rateLimitState.callCount = 0;
+    rateLimitState.resetTime = now + RATE_LIMIT_RESET_INTERVAL;
+  }
+  
+  // Check if rate limit would be exceeded
+  if (rateLimitState.callCount >= HOURLY_RATE_LIMIT) {
+    // Log the rate limit hit
+    logApiError({
+      timestamp: now,
+      endpoint: 'rate-limit',
+      error: `Rate limit of ${HOURLY_RATE_LIMIT} requests per hour exceeded. Resets at ${new Date(rateLimitState.resetTime).toISOString()}`
+    });
+    return false;
+  }
+  
+  // Increment call count
+  rateLimitState.callCount++;
+  return true;
+};
 
 // Mock data for development and testing
 const mockRecommendations: Recommendation[] = [
@@ -290,7 +444,10 @@ const getCurrentSeason = (): string => {
 /**
  * Calls OpenAI API to generate a recommendation
  */
-const callOpenAI = async (prompt: RecommendationPrompt): Promise<any> => {
+/**
+ * Calls OpenAI API to generate a recommendation with retries, rate limiting, and logging
+ */
+const callOpenAI = async (prompt: RecommendationPrompt, retryCount = 0): Promise<any> => {
   if (USE_MOCK_RECOMMENDATIONS) {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -317,7 +474,24 @@ const callOpenAI = async (prompt: RecommendationPrompt): Promise<any> => {
     };
   }
 
+  // Check rate limit before proceeding
+  if (!checkRateLimit()) {
+    throw new Error('OpenAI API rate limit exceeded. Please try again later.');
+  }
+
+  // Generate request ID for tracking
+  const requestId = uuidv4().slice(0, 8);
+  const startTime = Date.now();
+  const maxRetries = 2;
+
+  // Estimate token counts for logging
+  const estimatedPromptTokens = estimateTokenCount(prompt.systemPrompt + prompt.userPrompt);
+  
   try {
+    // Create AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), OPENAI_TIMEOUT);
+    
     const response = await fetch(OPENAI_API_URL, {
       method: 'POST',
       headers: {
@@ -332,14 +506,61 @@ const callOpenAI = async (prompt: RecommendationPrompt): Promise<any> => {
         ],
         temperature: prompt.temperature,
         max_tokens: prompt.maxTokens
-      })
+      }),
+      signal: controller.signal
     });
+    
+    // Clear the timeout
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
+      const errorText = await response.text();
+      const errorMessage = `API request failed with status ${response.status}: ${errorText}`;
+      
+      // Log the API error
+      logApiError({
+        timestamp: Date.now(),
+        endpoint: OPENAI_API_URL,
+        error: errorMessage,
+        request: {
+          model: prompt.model,
+          requestId
+        },
+        retryCount
+      });
+      
+      // Handle rate limiting from OpenAI (status 429)
+      if (response.status === 429 && retryCount < maxRetries) {
+        // Exponential backoff: wait 2^retryCount seconds before retrying
+        const backoffTime = Math.pow(2, retryCount) * 1000;
+        await new Promise(resolve => setTimeout(resolve, backoffTime));
+        return callOpenAI(prompt, retryCount + 1);
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
+    const endTime = Date.now();
+    
+    // Extract token usage from response if available
+    const tokenUsage = data.usage || {
+      prompt_tokens: estimatedPromptTokens,
+      completion_tokens: estimateTokenCount(data.choices[0]?.message?.content || ''),
+      total_tokens: estimatedPromptTokens + estimateTokenCount(data.choices[0]?.message?.content || '')
+    };
+    
+    // Log successful API usage
+    saveApiUsageLog({
+      timestamp: Date.now(),
+      endpoint: OPENAI_API_URL,
+      model: prompt.model,
+      promptTokens: tokenUsage.prompt_tokens,
+      completionTokens: tokenUsage.completion_tokens,
+      totalTokens: tokenUsage.total_tokens,
+      latency: endTime - startTime,
+      success: true
+    });
     
     // Parse the JSON from the response content
     try {
@@ -352,11 +573,58 @@ const callOpenAI = async (prompt: RecommendationPrompt): Promise<any> => {
         throw new Error('No valid JSON found in the response');
       }
     } catch (error) {
-      console.error('Error parsing OpenAI response:', error);
-      throw error;
+      // Log parsing error
+      logApiError({
+        timestamp: Date.now(),
+        endpoint: 'json-parsing',
+        error: `Error parsing OpenAI response: ${error instanceof Error ? error.message : String(error)}`,
+        request: {
+          model: prompt.model,
+          requestId
+        }
+      });
+      
+      // Return a fallback structured response when parsing fails
+      return {
+        title: "Lawn Care Recommendation",
+        description: data.choices[0].message.content.substring(0, 100) + "...",
+        category: "maintenance",
+        priority: "medium",
+        suggestedActions: [
+          {
+            title: "Review Full Recommendation",
+            description: "The AI provided a recommendation that couldn't be automatically processed",
+            taskCategory: "maintenance"
+          }
+        ],
+        confidenceScore: 60
+      };
     }
   } catch (error) {
-    console.error('Error calling OpenAI API:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    
+    // Log detailed error information
+    logApiError({
+      timestamp: Date.now(),
+      endpoint: OPENAI_API_URL,
+      error: `Error calling OpenAI API: ${errorMessage}`,
+      request: {
+        model: prompt.model,
+        requestId
+      },
+      retryCount
+    });
+    
+    // Handle timeout errors or network issues with retry
+    if ((errorMessage.includes('timeout') || errorMessage.includes('network')) &&
+        retryCount < maxRetries) {
+      // Exponential backoff
+      const backoffTime = Math.pow(2, retryCount) * 1000;
+      await new Promise(resolve => setTimeout(resolve, backoffTime));
+      return callOpenAI(prompt, retryCount + 1);
+    }
+    
+    // Re-throw the error for the caller to handle
     throw error;
   }
 };
@@ -469,11 +737,36 @@ export const getRecommendations = async (
 /**
  * Generate a new AI recommendation based on user context
  */
+/**
+ * Generate a new AI recommendation based on user context with enhanced error handling and caching
+ */
 export const generateRecommendation = async (
   request: RecommendationRequest,
   serviceOptions?: Partial<RecommendationServiceOptions>
 ): Promise<Recommendation> => {
   const options = { ...DEFAULT_SERVICE_OPTIONS, ...serviceOptions };
+  
+  // Generate a cache key based on relevant request properties
+  const cacheKey = `${request.userId}_${request.lawnType}_${request.location}_${request.season || getCurrentSeason()}`;
+  
+  // Check cache first using the cache key, not just user ID
+  const now = Date.now();
+  const cachedRecommendations = Object.values(recommendationCache)
+    .flatMap(cache => cache.recommendations)
+    .filter(rec => {
+      // Look for recommendations with matching attributes
+      return rec.userId === request.userId &&
+             rec.createdAt &&
+             (new Date(rec.createdAt).getTime() > now - options.maxCacheAge) &&
+             (rec.contextTriggers?.weather === Boolean(request.weatherContext)) &&
+             (rec.contextTriggers?.season === true);
+    });
+  
+  // Return cached recommendation if it exists and is still valid
+  if (cachedRecommendations.length > 0) {
+    console.log('Using cached recommendation for:', cacheKey);
+    return cachedRecommendations[0];
+  }
   
   if (USE_MOCK_RECOMMENDATIONS) {
     console.log('Using mock recommendation generation');
@@ -494,6 +787,8 @@ export const generateRecommendation = async (
       source: 'ai'
     };
     
+    // Save mock recommendation to cache
+    cacheRecommendation(request.userId, newRec, options.maxCacheAge);
     return newRec;
   }
   
@@ -502,7 +797,7 @@ export const generateRecommendation = async (
     const systemPrompt = getSystemPrompt();
     const userPrompt = await generateUserPrompt(request);
     
-    // Call OpenAI API
+    // Call OpenAI API with retries and logging
     const promptRequest: RecommendationPrompt = {
       systemPrompt,
       userPrompt,
@@ -531,29 +826,34 @@ export const generateRecommendation = async (
       },
       suggestedActions: aiResponse.suggestedActions,
       aiConfidenceScore: aiResponse.confidenceScore || 75,
-      source: 'ai'
+      source: 'ai',
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        environment: NODE_ENV,
+        model: options.defaultModel,
+        cacheKey
+      }
     };
     
-    // Save to cache and storage
-    if (!recommendationCache[request.userId]) {
-      recommendationCache[request.userId] = {
-        recommendations: [recommendation],
-        timestamp: Date.now(),
-        expires: options.maxCacheAge || CACHE_DURATION
-      };
-    } else {
-      recommendationCache[request.userId].recommendations.push(recommendation);
-      recommendationCache[request.userId].timestamp = Date.now();
-    }
-    
-    saveToStorage([recommendation]);
+    // Cache the recommendation
+    cacheRecommendation(request.userId, recommendation, options.maxCacheAge);
     
     return recommendation;
   } catch (error) {
-    console.error('Error generating recommendation:', error);
+    // Log the error
+    logApiError({
+      timestamp: Date.now(),
+      endpoint: 'generateRecommendation',
+      error: `Error generating recommendation: ${error instanceof Error ? error.message : String(error)}`,
+      request: {
+        userId: request.userId,
+        lawnType: request.lawnType,
+        location: request.location
+      }
+    });
     
     // Return a fallback recommendation
-    return {
+    const fallbackRecommendation: Recommendation = {
       id: uuidv4(),
       userId: request.userId,
       title: 'General Lawn Maintenance',
@@ -567,9 +867,57 @@ export const generateRecommendation = async (
         lawnCondition: false,
         userActivity: false
       },
-      source: 'system'
+      source: 'system',
+      metadata: {
+        fallback: true,
+        error: error instanceof Error ? error.message : String(error),
+        generatedAt: new Date().toISOString(),
+        environment: NODE_ENV
+      }
     };
+    
+    // Cache the fallback recommendation (with shorter expiry)
+    cacheRecommendation(request.userId, fallbackRecommendation, Math.min(options.maxCacheAge, 4 * 60 * 60 * 1000)); // 4 hours max for fallbacks
+    
+    return fallbackRecommendation;
   }
+};
+
+/**
+ * Helper function to cache a recommendation
+ */
+const cacheRecommendation = (
+  userId: string,
+  recommendation: Recommendation,
+  maxCacheAge: number
+): void => {
+  // Save to cache
+  if (!recommendationCache[userId]) {
+    recommendationCache[userId] = {
+      recommendations: [recommendation],
+      timestamp: Date.now(),
+      expires: maxCacheAge || CACHE_DURATION
+    };
+  } else {
+    // Check if we already have a similar recommendation
+    const existingIndex = recommendationCache[userId].recommendations.findIndex(
+      r => r.category === recommendation.category &&
+           r.priority === recommendation.priority
+    );
+    
+    if (existingIndex >= 0) {
+      // Replace existing similar recommendation
+      recommendationCache[userId].recommendations[existingIndex] = recommendation;
+    } else {
+      // Add new recommendation
+      recommendationCache[userId].recommendations.push(recommendation);
+    }
+    
+    recommendationCache[userId].timestamp = Date.now();
+  }
+  
+  // Save to storage
+  saveToStorage([recommendation]);
 };
 
 /**
@@ -739,4 +1087,67 @@ export const clearRecommendationCache = (): void => {
     delete recommendationCache[key];
   });
   console.log('Recommendation cache cleared');
+};
+
+/**
+ * Get API usage statistics for the admin dashboard
+ */
+export const getApiUsageStats = (): {
+  totalCalls: number;
+  successRate: number;
+  avgLatency: number;
+  totalTokens: number;
+  callsByDay: Record<string, number>;
+  errorRate: number;
+  remainingQuota: number;
+} => {
+  const logs = loadApiUsageLogs();
+  
+  if (logs.length === 0) {
+    return {
+      totalCalls: 0,
+      successRate: 100,
+      avgLatency: 0,
+      totalTokens: 0,
+      callsByDay: {},
+      errorRate: 0,
+      remainingQuota: HOURLY_RATE_LIMIT
+    };
+  }
+  
+  const successfulCalls = logs.filter(log => log.success);
+  const totalTokens = logs.reduce((sum, log) => sum + (log.totalTokens || 0), 0);
+  const totalLatency = successfulCalls.reduce((sum, log) => sum + log.latency, 0);
+  
+  // Group by day
+  const callsByDay: Record<string, number> = {};
+  logs.forEach(log => {
+    const date = new Date(log.timestamp).toISOString().split('T')[0];
+    callsByDay[date] = (callsByDay[date] || 0) + 1;
+  });
+  
+  return {
+    totalCalls: logs.length,
+    successRate: (successfulCalls.length / logs.length) * 100,
+    avgLatency: successfulCalls.length > 0 ? totalLatency / successfulCalls.length : 0,
+    totalTokens,
+    callsByDay,
+    errorRate: 100 - ((successfulCalls.length / logs.length) * 100),
+    remainingQuota: HOURLY_RATE_LIMIT - rateLimitState.callCount
+  };
+};
+
+/**
+ * Reset API usage statistics (for testing)
+ */
+export const resetApiUsageStats = (): void => {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.API_USAGE);
+    localStorage.removeItem(STORAGE_KEYS.ERROR_LOG);
+    rateLimitState.callCount = 0;
+    rateLimitState.resetTime = Date.now() + RATE_LIMIT_RESET_INTERVAL;
+    console.log('API usage statistics reset');
+  } catch (error) {
+    console.error('Error resetting API usage statistics:', error);
+  }
 };

@@ -24,13 +24,16 @@ export interface Notification {
 /**
  * Supported notification types
  */
-export type NotificationType = 
-  | 'scheduled_task'     // Task reminder or notification
-  | 'weather_alert'      // Weather warning or condition alert
-  | 'watering_event'     // Watering schedule notification
-  | 'seasonal_tip'       // Seasonal lawn care advice
-  | 'progress_update'    // Lawn progress milestone
-  | 'system_alert';      // System-level alert
+export type NotificationType =
+  | 'scheduled_task'      // Task reminder or notification
+  | 'weather_alert'       // Weather warning or condition alert
+  | 'watering_event'      // Watering schedule notification
+  | 'watering_reminder'   // Reminder for upcoming watering event
+  | 'watering_completed'  // Notification for completed watering
+  | 'watering_cancelled'  // Notification for cancelled watering
+  | 'seasonal_tip'        // Seasonal lawn care advice
+  | 'progress_update'     // Lawn progress milestone
+  | 'system_alert';       // System-level alert
 
 /**
  * Priority levels for notifications
@@ -116,6 +119,13 @@ export interface NotificationPreferences {
     priority: NotificationPriority;
     deliveryMethods: NotificationDeliveryMethod[];
   }>;
+  wateringNotificationSettings?: {
+    reminderTiming: ('day_before' | 'morning_of' | 'hour_before')[];
+    notifyOnCompletion: boolean;
+    notifyOnCancellation: boolean;
+    notifyOnAdjustment: boolean;
+    minRainfallToNotify: number; // in inches
+  };
 }
 
 /**
@@ -144,16 +154,83 @@ export interface WeatherAlertNotification extends Notification {
 }
 
 /**
- * Watering event notification specific data
+ * Base interface for all watering-related notifications
  */
-export interface WateringEventNotification extends Notification {
+export interface BaseWateringNotification extends Notification {
+  type: 'watering_event' | 'watering_reminder' | 'watering_completed' | 'watering_cancelled';
+  metadata: {
+    scheduleId: string;
+    scheduledDate: string;
+    startTime: string;
+    zones: string[];
+    waterAmount?: number; // in gallons
+  };
+}
+
+/**
+ * Watering event notification - used for general watering events
+ */
+export interface WateringEventNotification extends BaseWateringNotification {
   type: 'watering_event';
   metadata: {
     scheduleId: string;
+    scheduledDate: string;
+    startTime: string;
+    zones: string[];
     status: 'scheduled' | 'adjusted' | 'completed' | 'skipped';
     adjustmentReason?: string;
-    waterSaved?: number;
-    zones?: string[];
+    waterSaved?: number; // in gallons
+    originalDate?: string;
+    originalTime?: string;
+  };
+}
+
+/**
+ * Watering reminder notification - used for upcoming watering events
+ */
+export interface WateringReminderNotification extends BaseWateringNotification {
+  type: 'watering_reminder';
+  metadata: {
+    scheduleId: string;
+    scheduledDate: string;
+    startTime: string;
+    zones: string[];
+    timeUntil: string; // "1 day", "4 hours", etc.
+    waterAmount: number; // in gallons
+    weatherForecast?: string;
+    temperature?: number;
+  };
+}
+
+/**
+ * Watering completed notification - used when watering is finished
+ */
+export interface WateringCompletedNotification extends BaseWateringNotification {
+  type: 'watering_completed';
+  metadata: {
+    scheduleId: string;
+    scheduledDate: string;
+    startTime: string;
+    endTime: string;
+    zones: string[];
+    waterAmount: number; // in gallons
+    duration: number; // in minutes
+  };
+}
+
+/**
+ * Watering cancelled notification - used when watering is cancelled
+ */
+export interface WateringCancelledNotification extends BaseWateringNotification {
+  type: 'watering_cancelled';
+  metadata: {
+    scheduleId: string;
+    scheduledDate: string;
+    startTime: string;
+    zones: string[];
+    cancellationReason: string;
+    rainfall?: number; // in inches
+    waterSaved: number; // in gallons
   };
 }
 

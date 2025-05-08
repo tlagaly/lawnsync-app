@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getMessaging, isSupported, getToken } from 'firebase/messaging';
 
 // Mock Firebase configuration for local testing
 // This allows us to test without needing to set up a real Firebase project
@@ -23,6 +24,41 @@ const app = initializeApp(firebaseConfig);
 // Get auth and firestore instances
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Firebase Cloud Messaging setup
+export let messaging: any = null;
+
+// Initialize Firebase Cloud Messaging and handle token retrieval
+export const initializeMessaging = async (): Promise<string | null> => {
+  try {
+    // Check if browser supports FCM
+    const isMessagingSupported = await isSupported();
+    
+    if (!isMessagingSupported) {
+      console.log('Firebase Cloud Messaging is not supported in this browser');
+      return null;
+    }
+    
+    // If FCM is supported, initialize it
+    messaging = getMessaging(app);
+    
+    // Get FCM registration token
+    const token = await getToken(messaging, {
+      vapidKey: 'YOUR-VAPID-KEY-HERE' // Replace with your VAPID key for production
+    });
+    
+    if (token) {
+      console.log('FCM registration token:', token);
+      return token;
+    } else {
+      console.log('No FCM registration token available');
+      return null;
+    }
+  } catch (error) {
+    console.error('Error initializing Firebase Cloud Messaging:', error);
+    return null;
+  }
+};
 
 // Set up emulators for local testing
 if (USE_MOCK_FIREBASE) {
