@@ -10,12 +10,13 @@
 .app-content {
   flex: 1;
   padding-bottom: 70px; /* Space for mobile navigation */
+  padding-top: 110px; /* Space for header (60px) + desktop nav (50px) */
 }
 
 /* Desktop styles */
 @media (min-width: 768px) {
   .app-layout {
-    padding-top: 64px; /* Space for desktop navigation */
+    padding-top: 0; /* Remove padding as it's handled by app-content */
   }
   
   .app-content {

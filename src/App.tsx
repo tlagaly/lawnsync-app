@@ -1,11 +1,5 @@
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import OnboardingContainer from './features/onboarding/OnboardingContainer'
-import DashboardContainer from './features/dashboard/DashboardContainer'
-import FixIssuesContainer from './features/fix-issues/FixIssuesContainer'
-import MaintainContainer from './features/maintain/MaintainContainer'
-import ImproveContainer from './features/improve/ImproveContainer'
-import TrackContainer from './features/track/TrackContainer'
-import ResourcesContainer from './features/resources/ResourcesContainer'
 import AuthContainer from './features/auth/AuthContainer'
 import AccountSettingsContainer from './features/settings/AccountSettingsContainer'
 import AnalyticsFeedbackDemo from './features/demo/AnalyticsFeedbackDemo'
@@ -15,11 +9,18 @@ import ChakraProviderWrapper from './ChakraProviderWrapper'
 import { useAuthStore } from './store/authStore'
 import './App.css'
 
+// New user-centric container components
+import HomeContainer from './features/home/HomeContainer'
+import TasksProjectsContainer from './features/tasks-projects/TasksProjectsContainer'
+import AIAssistantContainer from './features/assistant/AIAssistantContainer'
+import MyLawnContainer from './features/my-lawn/MyLawnContainer'
+import PlantIdentifierContainer from './features/plant-identifier/PlantIdentifierContainer'
+
 /**
  * Main App component
- * Provides routing between app sections using the jobs-to-be-done approach
+ * Provides routing between app sections using the user-centric approach
  * Each section focuses on specific user goals rather than features
- * Temporarily removed ChakraProvider due to compatibility issues with version 3.17.0
+ * Updated navigation structure based on user feedback
  */
 function App() {
   const { isAuthenticated, isLoading } = useAuthStore();
@@ -46,7 +47,7 @@ function App() {
           path="/"
           element={
             isAuthenticated
-              ? <Navigate to="/dashboard" replace />
+              ? <Navigate to="/home" replace />
               : <Navigate to="/onboarding" replace />
           }
         />
@@ -66,23 +67,20 @@ function App() {
             </ProtectedRoute>
           }
         >
-          {/* Dashboard */}
-          <Route path="/dashboard" element={<DashboardContainer />} />
+          {/* Home (Dashboard) */}
+          <Route path="/home" element={<HomeContainer />} />
           
-          {/* Fix Issues */}
-          <Route path="/fix-issues" element={<FixIssuesContainer />} />
+          {/* Tasks and Projects */}
+          <Route path="/tasks-projects" element={<TasksProjectsContainer />} />
           
-          {/* Maintain */}
-          <Route path="/maintain" element={<MaintainContainer />} />
+          {/* AI Assistant */}
+          <Route path="/assistant" element={<AIAssistantContainer />} />
           
-          {/* Improve */}
-          <Route path="/improve" element={<ImproveContainer />} />
+          {/* My Lawn */}
+          <Route path="/my-lawn" element={<MyLawnContainer />} />
           
-          {/* Track */}
-          <Route path="/track" element={<TrackContainer />} />
-          
-          {/* Resources */}
-          <Route path="/resources" element={<ResourcesContainer />} />
+          {/* Plant Identifier */}
+          <Route path="/plant-identifier" element={<PlantIdentifierContainer />} />
           
           {/* Settings */}
           <Route path="/settings" element={<AccountSettingsContainer />} />
