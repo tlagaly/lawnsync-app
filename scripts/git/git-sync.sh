@@ -16,20 +16,44 @@ NC='\033[0m' # No Color
 echo -e "${BLUE}=== LawnSync Git Sync Tool ===${NC}"
 echo "Starting branch synchronization..."
 
+# Function to safely switch branches with memory-bank handling
+safe_checkout() {
+    local target_branch=$1
+    echo -e "${YELLOW}Preparing to switch to ${target_branch}...${NC}"
+    
+    # Check if there are any local changes to memory-bank
+    if git status --porcelain memory-bank/ 2>/dev/null | grep -q "^"; then
+        echo -e "${YELLOW}Temporarily stashing memory-bank changes...${NC}"
+        git stash push -m "memory-bank-stash-$(date +%s)" -- memory-bank/
+        local stashed=true
+    else
+        local stashed=false
+    fi
+    
+    # Perform the checkout
+    git checkout "$target_branch"
+    
+    # If we stashed changes and the checkout succeeded, pop the stash
+    if [ "$stashed" = true ] && [ "$?" -eq 0 ]; then
+        echo -e "${YELLOW}Restoring memory-bank changes...${NC}"
+        git stash pop
+    fi
+}
+
 # Fetch the latest changes from remote, including pruning deleted branches
 echo -e "${YELLOW}Fetching latest changes and pruning remote references...${NC}"
 git fetch --all --prune
 
 # Sync master branch
 echo -e "${YELLOW}Synchronizing master branch...${NC}"
-git checkout master
+safe_checkout master
 git pull origin master
 MASTER_HASH=$(git rev-parse HEAD)
 echo -e "${GREEN}Master branch updated to commit ${MASTER_HASH}${NC}"
 
 # Sync development branch
 echo -e "${YELLOW}Synchronizing development branch...${NC}"
-git checkout development
+safe_checkout development
 git pull origin development
 DEV_HASH=$(git rev-parse HEAD)
 echo -e "${GREEN}Development branch updated to commit ${DEV_HASH}${NC}"

@@ -6,8 +6,16 @@ service firebase.storage {
       return request.auth != null;
     }
     
+    function isEmailVerified() {
+      return isAuthenticated() && request.auth.token.email_verified == true;
+    }
+    
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.admin == true;
     }
     
     function isImage() {
@@ -25,21 +33,37 @@ service firebase.storage {
     }
     
     // User profile photos
+    // Profile photos have special handling - allowed without email verification
+    // This is because users need to see their own profile even before verification
     match /user_photos/{userId}/{fileName} {
-      allow read: if isAuthenticated(); // All authenticated users can view profile photos
+      // All authenticated users can view profile photos
+      allow read: if isAuthenticated();
+      
+      // Users can upload their own profile photos even without verification
       allow write: if isOwner(userId) && isImage() && isValidImageSize();
     }
     
-    // Lawn progress photos
+    // Lawn progress photos - require email verification for uploads
     match /lawn_photos/{userId}/{fileName} {
-      allow read: if isOwner(userId);
-      allow write: if isOwner(userId) && isImage() && isValidImageSize();
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId) && isEmailVerified() && isImage() && isValidImageSize();
+      
+      // Admins can read and delete, but not upload
+      allow delete: if isAdmin();
     }
     
-    // Plant identification photos
+    // Plant identification photos - require email verification for uploads
     match /plant_identifications/{userId}/{fileName} {
-      allow read: if isOwner(userId);
-      allow write: if isOwner(userId) && isImage() && isValidImageSize();
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId) && isEmailVerified() && isImage() && isValidImageSize();
+      
+      // Admins can read and delete, but not upload
+      allow delete: if isAdmin();
+    }
+    
+    // Admin-only paths for system resources
+    match /system/{fileName} {
+      allow read, write: if isAdmin();
     }
   }
 }

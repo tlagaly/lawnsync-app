@@ -14,6 +14,30 @@ NC='\033[0m' # No Color
 
 echo -e "${BLUE}=== LawnSync Branch Cleanup Tool ===${NC}"
 
+# Function to safely switch branches with memory-bank handling
+safe_checkout() {
+    local target_branch=$1
+    echo -e "${YELLOW}Preparing to switch to ${target_branch}...${NC}"
+    
+    # Check if there are any local changes to memory-bank
+    if git status --porcelain memory-bank/ 2>/dev/null | grep -q "^"; then
+        echo -e "${YELLOW}Temporarily stashing memory-bank changes...${NC}"
+        git stash push -m "memory-bank-stash-$(date +%s)" -- memory-bank/
+        local stashed=true
+    else
+        local stashed=false
+    fi
+    
+    # Perform the checkout
+    git checkout "$target_branch"
+    
+    # If we stashed changes and the checkout succeeded, pop the stash
+    if [ "$stashed" = true ] && [ "$?" -eq 0 ]; then
+        echo -e "${YELLOW}Restoring memory-bank changes...${NC}"
+        git stash pop
+    fi
+}
+
 # Function to delete branches both locally and remotely
 cleanup_branch() {
     local branch_name=$1
@@ -23,7 +47,7 @@ cleanup_branch() {
     if [ "$current_branch" == "$branch_name" ]; then
         echo -e "${YELLOW}You are currently on the branch you're trying to delete.${NC}"
         echo -e "${YELLOW}Switching to development branch...${NC}"
-        git checkout development
+        safe_checkout development
     fi
     
     # Delete local branch

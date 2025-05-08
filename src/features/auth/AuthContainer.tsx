@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
+import EmailVerificationScreen from './screens/EmailVerificationScreen';
 import { useAuthStore } from '../../store/authStore';
 
 /**
@@ -11,17 +12,25 @@ const AuthContainer: React.FC = () => {
   const [isSignup, setIsSignup] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, isLoading, error, clearError } = useAuthStore();
+  const {
+    user,
+    isAuthenticated,
+    isLoading,
+    error,
+    isEmailVerified,
+    clearError,
+    sendVerificationEmail
+  } = useAuthStore();
   
   // Get the intended destination if redirected from a protected route
   const from = location.state?.from?.pathname || '/dashboard';
   
-  // Redirect to destination if already authenticated
+  // Redirect to destination if already authenticated and email verified
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && isEmailVerified) {
       navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate, from]);
+  }, [isAuthenticated, isEmailVerified, navigate, from]);
 
   // Toggle between login and signup views
   const toggleAuthMode = () => {
@@ -44,10 +53,27 @@ const AuthContainer: React.FC = () => {
     );
   }
 
+  // If authenticated but email not verified, show email verification screen
+  if (isAuthenticated && !isEmailVerified) {
+    return (
+      <div style={{
+        maxWidth: '450px',
+        margin: '0 auto',
+        padding: '20px'
+      }}>
+        <EmailVerificationScreen
+          email={user?.email || ''}
+          onResendVerification={sendVerificationEmail}
+          error={error}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div style={{ 
-      maxWidth: '450px', 
-      margin: '0 auto', 
+    <div style={{
+      maxWidth: '450px',
+      margin: '0 auto',
       padding: '20px'
     }}>
       {isSignup ? (

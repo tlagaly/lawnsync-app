@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { useUserProfileStore } from '../../store/userProfileStore';
 import NotificationPreferencesView from './components/NotificationPreferencesView';
+import OfflineSettingsView from './components/OfflineSettingsView';
 
 /**
  * AccountSettingsContainer provides a simple user account management interface
@@ -196,7 +197,26 @@ const AccountSettingsContainer: React.FC = () => {
       </div>
       
       {/* Notification Preferences Section */}
-      <NotificationPreferencesView />
+      <div style={{
+        backgroundColor: 'white',
+        border: '1px solid #E2E8F0',
+        borderRadius: '8px',
+        padding: '24px',
+        marginBottom: '24px'
+      }}>
+        <NotificationPreferencesView />
+      </div>
+      
+      {/* Offline Settings Section */}
+      <div style={{
+        backgroundColor: 'white',
+        border: '1px solid #E2E8F0',
+        borderRadius: '8px',
+        padding: '24px',
+        marginBottom: '24px'
+      }}>
+        <OfflineSettingsView />
+      </div>
       
       {/* Logout button */}
       <div style={{ textAlign: 'center', marginTop: '40px' }}>

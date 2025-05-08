@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LawnSync - Offline Mode</title>
+    <link rel="icon" type="image/png" href="/assets/icons/icon-192x192.png">
+    <style>
+        :root {
+            --green-500: #48BB78;
+            --green-600: #38A169;
+            --green-700: #2F855A;
+            --gray-100: #F7FAFC;
+            --gray-200: #EDF2F7;
+            --gray-300: #E2E8F0;
+            --gray-500: #718096;
+            --gray-700: #4A5568;
+            --gray-800: #2D3748;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
+                         "Helvetica Neue", Arial, sans-serif;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--gray-100);
+            color: var(--gray-800);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            padding: 16px;
+        }
+        
+        .header-content {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--green-500);
+        }
+        
+        main {
+            flex: 1;
+            padding: 24px 16px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .offline-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 24px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        .offline-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--gray-200);
+            border-radius: 50%;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: var(--gray-800);
+        }
+        
+        p {
+            color: var(--gray-700);
+            margin-bottom: 16px;
+        }
+        
+        .status-container {
+            background-color: var(--gray-200);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--gray-300);
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: 500;
+        }
+        
+        .button {
+            background-color: var(--green-600);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .button:hover {
+            background-color: var(--green-700);
+        }
+        
+        .button-secondary {
+            background-color: transparent;
+            color: var(--green-600);
+            border: 1px solid var(--green-600);
+        }
+        
+        .button-secondary:hover {
+            background-color: var(--gray-200);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .features-list {
+            text-align: left;
+            margin: 16px 0;
+            padding-left: 24px;
+        }
+        
+        .features-list li {
+            margin-bottom: 8px;
+        }
+        
+        .tip-box {
+            background-color: var(--green-600);
+            color: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+        
+        .tip-box h3 {
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+        
+        .connection-icon {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #E53E3E;
+            margin-right: 8px;
+        }
+        
+        footer {
+            background-color: white;
+            padding: 16px;
+            color: var(--gray-500);
+            font-size: 14px;
+            text-align: center;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">LawnSync</div>
+            <div>
+                <span class="connection-icon"></span>
+                <span style="font-size: 14px; color: #E53E3E; font-weight: 500;">Offline</span>
+            </div>
+        </div>
+    </header>
+    
+    <main>
+        <div class="container">
+            <div class="offline-card">
+                <div class="offline-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                        <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+                        <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+                        <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
+                        <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+                        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                        <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                    </svg>
+                </div>
+                
+                <h1>You're Offline</h1>
+                <p>Don't worry! LawnSync works offline, allowing you to continue using most features.</p>
+                
+                <div class="status-container">
+                    <div class="status-item">
+                        <span class="status-label">Connection Status:</span>
+                        <span style="color: #E53E3E; font-weight: 500;">Offline</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Offline Mode:</span>
+                        <span style="color: #38A169; font-weight: 500;">Active</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Last Sync:</span>
+                        <span id="last-sync">Checking...</span>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button class="button" id="retry-button">Try Again</button>
+                    <button class="button button-secondary" id="home-button">Go to Dashboard</button>
+                </div>
+            </div>
+            
+            <div class="offline-card">
+                <h2>Available Offline Features</h2>
+                <ul class="features-list">
+                    <li>View your scheduled lawn care tasks</li>
+                    <li>Check your cached weather forecast</li>
+                    <li>Browse your lawn photo gallery</li>
+                    <li>Update task completion status</li>
+                    <li>Create new tasks (will sync when online)</li>
+                </ul>
+                
+                <div class="tip-box">
+                    <h3>Lawn Care Tip</h3>
+                    <p>Any changes you make while offline will automatically sync when you're back online!</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 LawnSync. All rights reserved.</p>
+    </footer>
+    
+    <script>
+        // Update the last sync time from offline storage
+        document.addEventListener('DOMContentLoaded', () => {
+            // Try to get last sync time from IndexedDB
+            const lastSyncElement = document.getElementById('last-sync');
+            
+            // Check if we can access IndexedDB
+            if ('indexedDB' in window) {
+                const request = indexedDB.open('LawnSyncOfflineDB', 1);
+                
+                request.onsuccess = (event) => {
+                    const db = event.target.result;
+                    
+                    try {
+                        const tx = db.transaction('settings', 'readonly');
+                        const store = tx.objectStore('settings');
+                        const settingsRequest = store.get('offline_settings');
+                        
+                        settingsRequest.onsuccess = () => {
+                            const settings = settingsRequest.result;
+                            if (settings && settings.lastSyncTimestamp) {
+                                const date = new Date(settings.lastSyncTimestamp);
+                                lastSyncElement.textContent = date.toLocaleString();
+                            } else {
+                                lastSyncElement.textContent = 'Never';
+                            }
+                        };
+                        
+                        settingsRequest.onerror = () => {
+                            lastSyncElement.textContent = 'Unknown';
+                        };
+                    } catch (error) {
+                        lastSyncElement.textContent = 'Unknown';
+                    }
+                };
+                
+                request.onerror = () => {
+                    lastSyncElement.textContent = 'Unknown';
+                };
+            } else {
+                lastSyncElement.textContent = 'Unknown';
+            }
+            
+            // Set up retry button
+            const retryButton = document.getElementById('retry-button');
+            retryButton.addEventListener('click', () => {
+                window.location.reload();
+            });
+            
+            // Set up home button
+            const homeButton = document.getElementById('home-button');
+            homeButton.addEventListener('click', () => {
+                window.location.href = '/';
+            });
+        });
+    </script>
+</body>
+</html>

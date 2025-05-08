@@ -685,3 +685,15 @@ export const updateNotificationPreferences = async (
     return updateRealNotificationPreferences(preferencesUpdate);
   }
 };
+
+/**
+ * Get count of unread notifications
+ */
+export const getUnreadNotificationCount = async (): Promise<number> => {
+  const options: NotificationFilterOptions = {
+    readStatus: 'unread'
+  };
+  
+  const notifications = await getNotifications(options);
+  return notifications.length;
+};
