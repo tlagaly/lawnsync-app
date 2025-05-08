@@ -91,6 +91,38 @@
 - Streamlines development workflow by eliminating documentation steps for routine operations
 - Git operations should still be documented if they represent important pattern changes or workflow improvements
 
+### [2025-05-07 21:42:00] - Offline-First Architecture Implementation
+**Decision**: Implement comprehensive offline capabilities with service worker caching, local storage persistence, and conflict resolution strategies.
+
+**Rationale**: Mobile users often have intermittent connectivity, especially when using the app outdoors in their yards. Robust offline functionality is essential for a seamless user experience in these scenarios and aligns with the app's primary use case of outdoor lawn care.
+
+**Implications**:
+- Need to implement service worker for caching static assets and API responses
+- Require local storage persistence layer for critical app data
+- Must develop sync status indicators throughout the UI
+- Need conflict resolution strategy for offline-modified data
+- Core features must be adapted to work without connectivity
+- Additional UI components needed for offline mode indicators and settings
+- Testing processes need to include offline/online transitions
+- Documentation must clearly communicate offline capabilities to users
+
+### [2025-05-07 23:21:08] - User Analytics & Feedback System Implementation
+**Decision**: Implement a comprehensive user analytics and feedback system with Firebase Analytics integration, feedback collection mechanisms, and A/B testing framework.
+
+**Rationale**: Understanding user behavior and collecting feedback is crucial for continuous improvement of the app. Analytics provide quantitative data on feature usage and user engagement, while feedback mechanisms offer qualitative insights into user satisfaction and needs.
+
+**Implications**:
+- Need to integrate Firebase Analytics for tracking key user events
+- Require offline event queueing for analytics during disconnected usage
+- Must implement feedback collection mechanisms for recommendation quality rating
+- Additional UI components needed for survey collection and feedback forms
+- Privacy-focused design with opt-in for detailed tracking
+- A/B testing framework for UI and feature optimization
+- Admin dashboard for monitoring metrics and feedback management
+- Need to carefully balance analytics collection with performance impact
+- Custom events must be defined for critical features (recommendation views, task completions, etc.)
+- Implementation must be consistent with the app's offline-first architecture
+
 ## Feature Decisions
 
 ### [2025-05-05 14:48:00] - Visual Timeline Implementation
@@ -265,3 +297,48 @@
 - Extracted essential theme variables to ensure visual consistency
 - Maintains the ability to use the existing theme system
 - Provides a path forward until a more complete solution is implemented or Chakra UI issues are resolved
+
+### [2025-05-07 22:37:00] - Mandatory Use of write_to_file for All File Updates
+**Decision**: Always use write_to_file instead of append_to_file for updating any existing files, including Memory Bank files and all other project files.
+
+**Rationale**: While we previously documented this for Memory Bank files, it's critical to reinforce that append_to_file fails silently for all file updates. Using write_to_file exclusively ensures reliable updates to all files in the project.
+
+**Implications**:
+- Must always read current file content before any update
+- Always use write_to_file even when only appending content to the end of a file
+- Required for ALL file updates, not just Memory Bank files
+- More complex process requiring full file content management
+- Top priority implementation detail that must be followed consistently
+- Ensure all team members are aware of this critical approach
+
+### [2025-05-08 00:01:00] - Production Deployment and User Onboarding Strategy
+**Decision**: Transition from local MVP to a production-hosted environment with live API integrations for real user onboarding.
+
+**Rationale**: Having successfully completed the local MVP with all planned features, the application is now ready for real user testing and feedback. Moving to a hosted environment will allow us to validate our solution with actual users and gather valuable insights for further improvements while providing real value to early adopters.
+
+**Implications**:
+- Need to implement secure API key management for production environment
+- Must configure proper Firebase security rules for authentication and data access
+- Require deployment pipeline for consistent and reliable releases
+- Need monitoring and logging solutions for production environment
+- Must implement proper error tracking and reporting
+- Need to establish user onboarding processes and documentation
+- Require backup and disaster recovery procedures
+- Must optimize performance for production usage
+- Need to implement scalable architecture to accommodate user growth
+
+### [2025-05-08 00:26:06] - Multi-Environment Firebase Infrastructure Implementation
+**Decision**: Implement a comprehensive Firebase infrastructure with separate projects for Development, Staging, and Production environments.
+
+**Rationale**: A multi-environment approach ensures proper separation of concerns, enables safe testing before production deployment, and provides appropriate access controls for different team roles. This architecture is crucial for the transition from local MVP to a production-ready application.
+
+**Implications**:
+- Created environment-based configuration in firebase.ts to dynamically select the appropriate Firebase project
+- Implemented environment variable support for all Firebase configuration values
+- Added support for Firebase Storage and enhanced Cloud Messaging configuration
+- Updated environment detection logic to properly handle different deployment contexts
+- Enhanced emulator detection and configuration for local development
+- Created comprehensive documentation in FIREBASE_SETUP.md with detailed setup instructions
+- Standardized on us-central region across all environments for consistency
+- Defined appropriate team access controls for each environment
+- Established patterns for environment-specific security rules
