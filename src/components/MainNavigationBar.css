@@ -1,0 +1,130 @@
+/* MainNavigationBar.css */
+.main-nav {
+  --active-color: #007bff;
+  --inactive-color: #6c757d;
+  --hover-color: #0056b3;
+  --nav-bg: #ffffff;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  
+  width: 100%;
+  z-index: 100;
+  background-color: var(--nav-bg);
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+/* Desktop Navigation Styles */
+.main-nav.desktop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.desktop-nav {
+  display: flex;
+  justify-content: space-around;
+  padding: 0.75rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.desktop .nav-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  color: var(--inactive-color);
+  text-decoration: none;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.desktop .nav-item:hover {
+  color: var(--hover-color);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.desktop .nav-item.active {
+  color: var(--active-color);
+  font-weight: 600;
+  position: relative;
+}
+
+.desktop .nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30%;
+  height: 3px;
+  background-color: var(--active-color);
+  border-radius: 3px 3px 0 0;
+}
+
+.desktop .icon {
+  margin-right: 0.5rem;
+  font-size: 1.25rem;
+}
+
+/* Mobile Navigation Styles */
+.mobile-nav {
+  display: flex;
+  justify-content: space-around;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.5rem 0;
+  background-color: var(--nav-bg);
+  box-shadow: 0 -2px 4px var(--shadow-color);
+}
+
+.mobile .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  color: var(--inactive-color);
+  text-decoration: none;
+  flex: 1;
+  max-width: 80px;
+  transition: all 0.2s ease;
+}
+
+.mobile .nav-item.active {
+  color: var(--active-color);
+}
+
+.mobile .icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.mobile .label {
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  text-align: center;
+}
+
+/* Icon placeholders - these would be replaced with actual icons in production */
+.icon.dashboard::before { content: '📊'; }
+.icon.fix::before { content: '🔧'; }
+.icon.maintain::before { content: '🌱'; }
+.icon.improve::before { content: '⬆️'; }
+.icon.track::before { content: '📈'; }
+.icon.resources::before { content: '📚'; }
+.icon.settings::before { content: '⚙️'; }
+
+/* Adjust layout for tablets */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .desktop .nav-item {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .desktop .label {
+    font-size: 0.9rem;
+  }
+}

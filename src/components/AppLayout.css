@@ -1,0 +1,24 @@
+/* AppLayout.css - Styles for the main application layout structure */
+
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f7fafc;
+}
+
+.app-content {
+  flex: 1;
+  padding-bottom: 70px; /* Space for mobile navigation */
+}
+
+/* Desktop styles */
+@media (min-width: 768px) {
+  .app-layout {
+    padding-top: 64px; /* Space for desktop navigation */
+  }
+  
+  .app-content {
+    padding-bottom: 20px;
+  }
+}

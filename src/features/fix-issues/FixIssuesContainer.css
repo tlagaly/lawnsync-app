@@ -1,0 +1,68 @@
+/* FixIssuesContainer.css */
+.placeholder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 2rem 0;
+  justify-content: center;
+}
+
+.action-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1.5rem;
+  min-width: 120px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background-color: #e9ecef;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-button span {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.recent-problems {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #dee2e6;
+  text-align: center;
+}
+
+.recent-problems h3 {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+
+/* Icon placeholders */
+.icon-camera::before {
+  content: '📷';
+}
+
+.icon-gallery::before {
+  content: '🖼️';
+}
+
+.icon-list::before {
+  content: '📋';
+}
+
+@media (min-width: 768px) {
+  .placeholder-actions {
+    justify-content: flex-start;
+  }
+  
+  .recent-problems {
+    text-align: left;
+  }
+}
