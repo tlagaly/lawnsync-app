@@ -114,4 +114,29 @@ LawnSync is an AI-powered web application (https://app.lawnsync.ai) that provide
 - Push notification system
 - Cross-platform compatibility
 
+## Development Context & Constraints
+
+### Project Ownership
+- Project owner is not a developer and lacks technical knowledge/experience
+- All technical decisions should be explained in accessible language
+- Best practices should be proactively enforced and explained
+
+### Development Velocity
+- All tasks should be scoped to be completable by a solo developer in a single workday (8 hours)
+- Implementation should prioritize maintainability and clarity over complexity
+- Documentation must be thorough to enable future understanding
+
+### Version Control Requirements
+- Strict adherence to Git best practices is essential
+- Scripts and hooks should enforce proper Git workflow
+- Regular repository health checks should be performed
+- All Git operations should be explained with rationale
+
+### Quality Assurance
+- Code quality tools should be incorporated and explained
+- Testing should be implemented for critical functionality
+- Security best practices must be followed and documented
+- Performance considerations should be highlighted proactively
+
 [2025-05-05 14:30:00] - Initial project overview documentation
+[2025-05-07 18:40:00] - Added development context and constraints, including project ownership, velocity expectations, version control requirements, and quality assurance needs

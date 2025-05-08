@@ -1,16 +1,29 @@
 import React from 'react';
 import type { Notification } from '../../../types/notification';
 
+interface NotificationAction {
+  label: string;
+  icon: React.ReactNode;
+  onClick: () => void;
+  color?: string;
+}
+
 interface NotificationItemProps {
   notification: Notification;
   onRead: (id: string) => void;
   onDelete: (id: string) => void;
+  onComplete?: (id: string) => void;
+  onSnooze?: (id: string) => void;
+  onReschedule?: (id: string) => void;
 }
 
-const NotificationItem: React.FC<NotificationItemProps> = ({ 
-  notification, 
-  onRead, 
-  onDelete 
+const NotificationItem: React.FC<NotificationItemProps> = ({
+  notification,
+  onRead,
+  onDelete,
+  onComplete,
+  onSnooze,
+  onReschedule
 }) => {
   const getIconForType = (type: string): string => {
     switch (type) {
@@ -20,6 +33,12 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         return '⛈️';
       case 'watering_event':
         return '💧';
+      case 'watering_reminder':
+        return '⏰';
+      case 'watering_completed':
+        return '✅';
+      case 'watering_cancelled':
+        return '❌';
       case 'seasonal_tip':
         return '🌱';
       case 'progress_update':
@@ -75,6 +94,96 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     }
   };
 
+  // Build notification action buttons based on notification type
+  const getNotificationActions = (): NotificationAction[] => {
+    const actions: NotificationAction[] = [];
+
+    // Skip actions for read notifications
+    if (notification.isRead) {
+      return actions;
+    }
+
+    // Watering-related notification actions
+    if (notification.type === 'watering_reminder' || notification.type === 'watering_event') {
+      if (onComplete) {
+        actions.push({
+          label: 'Complete',
+          icon: (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          ),
+          onClick: () => onComplete(notification.id),
+          color: '#38A169' // Green
+        });
+      }
+      
+      if (onSnooze) {
+        actions.push({
+          label: 'Snooze',
+          icon: (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          ),
+          onClick: () => onSnooze(notification.id),
+          color: '#4299E1' // Blue
+        });
+      }
+      
+      if (onReschedule) {
+        actions.push({
+          label: 'Reschedule',
+          icon: (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <polyline points="1 20 1 14 7 14"></polyline>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+          ),
+          onClick: () => onReschedule(notification.id),
+          color: '#805AD5' // Purple
+        });
+      }
+    }
+
+    return actions;
+  };
+
+  // Extract watering schedule data for display if present
+  const getWateringDetails = () => {
+    if (!notification.metadata) return null;
+    
+    const meta = notification.metadata;
+    let details = null;
+    
+    if (notification.type === 'watering_reminder' || notification.type === 'watering_event') {
+      const date = meta.scheduledDate ? new Date(meta.scheduledDate).toLocaleDateString() : '';
+      const time = meta.startTime || '';
+      const zones = meta.zones?.join(', ') || '';
+      
+      details = (
+        <div style={{
+          fontSize: '12px',
+          color: '#4A5568',
+          backgroundColor: '#EBF8FF',
+          padding: '4px 8px',
+          borderRadius: '4px',
+          marginTop: '4px',
+          marginBottom: '8px'
+        }}>
+          {date && time && <div>When: {date} at {time}</div>}
+          {zones && <div>Zones: {zones}</div>}
+          {meta.waterAmount && <div>Water: {meta.waterAmount} gallons</div>}
+          {meta.rainfall && <div>Rainfall: {meta.rainfall} inches</div>}
+        </div>
+      );
+    }
+    
+    return details;
+  };
+
   const handleClick = () => {
     if (!notification.isRead) {
       onRead(notification.id);
@@ -112,13 +221,51 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
           {notification.title}
         </div>
         
-        <div style={{ 
-          fontSize: '13px', 
+        <div style={{
+          fontSize: '13px',
           color: '#4A5568',
-          marginBottom: '8px' 
+          marginBottom: notification.metadata ? '2px' : '8px'
         }}>
           {notification.message}
         </div>
+        
+        {/* Render watering details if present */}
+        {getWateringDetails()}
+        
+        {/* Action buttons */}
+        {getNotificationActions().length > 0 && (
+          <div style={{
+            display: 'flex',
+            gap: '8px',
+            marginBottom: '8px'
+          }}>
+            {getNotificationActions().map((action, index) => (
+              <button
+                key={index}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  action.onClick();
+                }}
+                title={action.label}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '4px 8px',
+                  backgroundColor: 'transparent',
+                  border: `1px solid ${action.color || '#CBD5E0'}`,
+                  color: action.color || '#4A5568',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  gap: '4px'
+                }}
+              >
+                {action.icon}
+                {action.label}
+              </button>
+            ))}
+          </div>
+        )}
         
         <div style={{ 
           fontSize: '12px',
