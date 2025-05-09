@@ -1,0 +1,58 @@
+/* QuickPrompt.css - Styles for the quick suggestion chips */
+
+.quick-prompt-container {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.quick-prompt-heading {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 0.75rem;
+}
+
+.quick-prompt-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.quick-prompt-chip {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background-color: #ebf8ff;
+  color: #3182ce;
+  border: 1px solid #bee3f8;
+  border-radius: 1.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  max-width: 100%;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quick-prompt-chip:hover {
+  background-color: #bee3f8;
+  border-color: #3182ce;
+}
+
+.quick-prompt-chip:active {
+  transform: scale(0.98);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .quick-prompt-container {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .quick-prompt-chip {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+}

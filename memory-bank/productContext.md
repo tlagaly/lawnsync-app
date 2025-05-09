@@ -59,52 +59,84 @@ LawnSync is an AI-powered web application (https://app.lawnsync.ai) that provide
 - Photo capture and upload
 - Location-based recommendations
 
-## App Structure
+## App Structure Evolution
 
-### 1. Onboarding Flow
-- Location, Goals, Lawn Size/Layout, Grass Type, Conditions, Problems, etc.
-- Plan Preview
-- Account Creation
+> Note: The application navigation has evolved through development to better align with user goals and mental models.
 
-### 2. Dashboard (Home)
-- Weekly Task Feed
-- Weather + Forecast
-- Smart Watering Plan
-- Seasonal Progress
-- Problem Area Tracker
-- AI Suggestions
-- Photo Check-ins / Progress
+### Initial Feature-Centric Structure
+The initial application structure was feature-oriented:
 
-### 3. Lawn Profile
-- Goals (Edit/Change)
-- Lawn Specs
-- Problem Areas Log
+1. **Onboarding Flow**
+   - Location, Goals, Lawn Size/Layout, Grass Type, Conditions, Problems, etc.
+   - Plan Preview
+   - Account Creation
 
-### 4. Landscaping
-- Tracked Plants & Features
-- Decorative Task Calendar
-- Before/After Visual Tracking
+2. **Dashboard (Home)**
+   - Weekly Task Feed
+   - Weather + Forecast
+   - Smart Watering Plan
+   - Seasonal Progress
+   - Problem Area Tracker
+   - AI Suggestions
+   - Photo Check-ins / Progress
 
-### 5. Tasks
-- All Tasks (Upcoming, Completed)
-- Filter options
-- Add Custom Task
+3. **Lawn Profile**
+   - Goals (Edit/Change)
+   - Lawn Specs
+   - Problem Areas Log
 
-### 6. AI Assistant (Chat)
-- Lawn Advice
-- Weed/Pest Diagnosis
-- Product Recommendations
+4. **Landscaping**
+   - Tracked Plants & Features
+   - Decorative Task Calendar
+   - Before/After Visual Tracking
 
-### 7. Gallery
-- Photo Timeline
-- Before & After Viewer
-- Add New Photo
+5. **Tasks**
+   - All Tasks (Upcoming, Completed)
+   - Filter options
+   - Add Custom Task
 
-### 8. Settings
-- Profile
-- Notifications
-- Lawn Zones
-- Product Preferences
+6. **AI Assistant (Chat)**
+   - Lawn Advice
+   - Weed/Pest Diagnosis
+   - Product Recommendations
+
+7. **Gallery**
+   - Photo Timeline
+   - Before & After Viewer
+   - Add New Photo
+
+8. **Settings**
+   - Profile
+   - Notifications
+   - Lawn Zones
+   - Product Preferences
+
+### Current User-Centric Structure
+The application now follows a user-centric approach with 5 main sections:
+
+1. **Home**
+   - Overview dashboard with weather, tasks, AI insights, progress visualizations
+   - Quick actions not found in primary navigation or header
+
+2. **Tasks and Projects**
+   - Goal setting and tracking
+   - AI-assisted project and task setup
+
+3. **AI Lawn Assistant**
+   - Chat-based interface for questions and guidance
+   - Project planning, scheduling, and materials identification
+
+4. **My Lawn**
+   - Address and lawn section management
+   - Section details (grass type, soil conditions, sun exposure)
+   - Photo gallery and before/after comparison tools
+
+5. **Plant and Lawn Identifier**
+   - Photo upload/capture for plant identification
+   - Assignment to lawn sections
+   - History of identified plants
+
+See `decisionLog.md` for detailed rationale behind this navigation evolution.
 
 ## Technical Requirements
 - Mobile-first responsive design
@@ -140,3 +172,4 @@ LawnSync is an AI-powered web application (https://app.lawnsync.ai) that provide
 
 [2025-05-05 14:30:00] - Initial project overview documentation
 [2025-05-07 18:40:00] - Added development context and constraints, including project ownership, velocity expectations, version control requirements, and quality assurance needs
+[2025-05-09 16:59:00] - Updated App Structure section to document navigation evolution from feature-centric to user-centric approach
