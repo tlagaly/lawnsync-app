@@ -7,18 +7,52 @@
   background-color: #f7fafc;
 }
 
+/* Nav wrapper contains both header and main navigation */
+.nav-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  width: 100%;
+}
+
 .app-content {
   flex: 1;
   padding-bottom: 70px; /* Space for mobile navigation */
+  padding-top: 60px; /* Space for header only */
+  margin-top: 0;
 }
 
 /* Desktop styles */
 @media (min-width: 768px) {
   .app-layout {
-    padding-top: 64px; /* Space for desktop navigation */
+    padding-top: 0; /* Remove padding as it's handled by app-content */
   }
   
   .app-content {
-    padding-bottom: 20px;
+    padding-bottom: 20px; /* No need for bottom padding on desktop */
+    padding-top: 60px; /* Keep consistent padding for header */
+  }
+  
+  /* Make sure header and nav are side by side */
+  .nav-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Remove individual fixed positioning from header */
+  .app-header {
+    position: relative;
+    top: unset;
+    box-shadow: none;
+  }
+  
+  /* Update main nav positioning */
+  .main-nav.desktop {
+    position: relative;
+    top: unset;
   }
 }

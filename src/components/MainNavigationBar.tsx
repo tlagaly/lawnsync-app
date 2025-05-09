@@ -13,13 +13,11 @@ interface MainNavigationBarProps {
 }
 
 const navItems: NavItem[] = [
-  { path: '/dashboard', label: 'My Dashboard', icon: 'dashboard' },
-  { path: '/fix-issues', label: 'Fix Issues', icon: 'fix' },
-  { path: '/maintain', label: 'Maintain', icon: 'maintain' },
-  { path: '/improve', label: 'Improve', icon: 'improve' },
-  { path: '/track', label: 'Track', icon: 'track' },
-  { path: '/resources', label: 'Resources', icon: 'resources' },
-  { path: '/settings', label: 'Settings', icon: 'settings' }
+  { path: '/home', label: 'Home', icon: 'home' },
+  { path: '/tasks-projects', label: 'Tasks & Projects', icon: 'tasks' },
+  { path: '/assistant', label: 'AI Assistant', icon: 'assistant' },
+  { path: '/my-lawn', label: 'My Lawn', icon: 'lawn' },
+  { path: '/plant-identifier', label: 'Plant ID', icon: 'plant-id' }
 ];
 
 const MainNavigationBar: React.FC<MainNavigationBarProps> = ({ activeSection }) => {

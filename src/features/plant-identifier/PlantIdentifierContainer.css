@@ -1,0 +1,151 @@
+/* PlantIdentifierContainer.css - Styles for the plant identifier view */
+
+.plant-identifier-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.plant-identifier-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.plant-identifier-header h1 {
+  font-size: 1.75rem;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #718096;
+  font-size: 1.1rem;
+}
+
+.plant-identifier-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.upload-section,
+.identification-section,
+.history-section,
+.common-issues-section {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+}
+
+.plant-identifier-content h2 {
+  font-size: 1.25rem;
+  color: #2d3748;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.upload-area {
+  background-color: #f7fafc;
+  border: 2px dashed #cbd5e0;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-area:hover {
+  background-color: #edf2f7;
+  border-color: #a0aec0;
+}
+
+.placeholder-content {
+  background-color: #f7fafc;
+  border-radius: 4px;
+  padding: 1.5rem;
+  color: #4a5568;
+}
+
+.placeholder-note {
+  font-size: 0.85rem;
+  margin-top: 1rem;
+  color: #718096;
+  font-style: italic;
+}
+
+.common-issues-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.issue-item {
+  background-color: #f7fafc;
+  border-radius: 8px;
+  padding: 1.25rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.issue-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.issue-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.issue-item h3 {
+  font-size: 1.1rem;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.issue-item p {
+  font-size: 0.9rem;
+  color: #4a5568;
+}
+
+/* Responsive layout for larger screens */
+@media (min-width: 768px) {
+  .plant-identifier-header h1 {
+    font-size: 2rem;
+  }
+  
+  .common-issues-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .plant-identifier-content {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .upload-section {
+    grid-column: 1 / -1; /* Make the upload section span full width */
+  }
+}
+
+@media (min-width: 1024px) {
+  .plant-identifier-header {
+    margin-bottom: 2.5rem;
+  }
+  
+  .common-issues-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .plant-identifier-content {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .upload-section,
+  .common-issues-section {
+    grid-column: 1 / -1; /* Make upload and common issues sections span full width */
+  }
+}

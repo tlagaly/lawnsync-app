@@ -14,28 +14,32 @@
 
 /* Desktop Navigation Styles */
 .main-nav.desktop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  position: static; /* Regular flow positioning for desktop */
+  height: auto; /* Allow height to be determined by content */
+  width: 100%;
 }
 
 .desktop-nav {
   display: flex;
   justify-content: space-around;
+  align-items: center;
   padding: 0.75rem 1rem;
   max-width: 1200px;
   margin: 0 auto;
+  height: auto; /* Allow proper height */
+  min-height: 40px; /* Ensure minimum height */
 }
 
 .desktop .nav-item {
   display: flex;
   align-items: center;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.25rem;
   color: var(--inactive-color);
   text-decoration: none;
   border-radius: 4px;
   transition: all 0.2s ease;
+  height: 24px; /* Fixed height */
+  font-weight: 500;
 }
 
 .desktop .nav-item:hover {
@@ -64,16 +68,27 @@
 .desktop .icon {
   margin-right: 0.5rem;
   font-size: 1.25rem;
+  display: inline-block; /* Ensure the icon is displayed */
+}
+
+.desktop .label {
+  display: inline-block; /* Ensure the label is displayed */
+  font-size: 1rem;
 }
 
 /* Mobile Navigation Styles */
-.mobile-nav {
-  display: flex;
-  justify-content: space-around;
+.main-nav.mobile {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
+  z-index: 99;
+  width: 100%;
+}
+
+.mobile-nav {
+  display: flex;
+  justify-content: space-around;
   padding: 0.5rem 0;
   background-color: var(--nav-bg);
   box-shadow: 0 -2px 4px var(--shadow-color);
@@ -110,13 +125,24 @@
 }
 
 /* Icon placeholders - these would be replaced with actual icons in production */
-.icon.dashboard::before { content: '📊'; }
-.icon.fix::before { content: '🔧'; }
-.icon.maintain::before { content: '🌱'; }
-.icon.improve::before { content: '⬆️'; }
-.icon.track::before { content: '📈'; }
-.icon.resources::before { content: '📚'; }
-.icon.settings::before { content: '⚙️'; }
+.icon::before {
+  display: inline-block;
+  font-size: 1.25rem;
+  margin-right: 0.5rem;
+}
+
+.icon.home::before { content: '🏠'; }
+.icon.tasks::before { content: '📋'; }
+.icon.assistant::before { content: '🤖'; }
+.icon.lawn::before { content: '🌱'; }
+.icon.plant-id::before { content: '🔍'; }
+
+/* Add a background color to the entire nav on desktop */
+.main-nav.desktop {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
 
 /* Adjust layout for tablets */
 @media (min-width: 768px) and (max-width: 1024px) {
