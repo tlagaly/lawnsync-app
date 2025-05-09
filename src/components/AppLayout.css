@@ -22,7 +22,8 @@
 .app-content {
   flex: 1;
   padding-bottom: 70px; /* Space for mobile navigation */
-  padding-top: 110px; /* Space for header (60px) + desktop nav (50px) */
+  padding-top: 60px; /* Space for header only */
+  margin-top: 0;
 }
 
 /* Desktop styles */
@@ -32,7 +33,8 @@
   }
   
   .app-content {
-    padding-bottom: 20px;
+    padding-bottom: 20px; /* No need for bottom padding on desktop */
+    padding-top: 60px; /* Keep consistent padding for header */
   }
   
   /* Make sure header and nav are side by side */
