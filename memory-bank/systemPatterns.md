@@ -592,15 +592,22 @@
 
 ## Navigation Patterns
 
-### Jobs-to-be-Done Navigation Pattern
+### User-Centric Navigation Pattern
 - Application sections organized around user goals rather than features
-- Main navigation structure aligned with primary user jobs
+- Main navigation structure aligned with 5 primary user-centric sections:
+  1. Home (Dashboard with overview and quick actions)
+  2. Tasks and Projects (Goal setting, task scheduling, project management)
+  3. AI Lawn Assistant (Chat-based guidance, recommendations)
+  4. My Lawn (Profile management, lawn sections, photo tracking)
+  5. Plant and Lawn Identifier (Visual identification, species database)
 - Each section specializes in accomplishing specific user goals
 - Contextual actions specific to each section's primary purpose
 - Consistent page layout structure across all goal-oriented sections
-- Mobile-optimized navigation with touch-friendly controls
+- Mobile-optimized navigation with touch-friendly controls at bottom of screen
+- Desktop navigation in header for larger viewports
 - Responsive design adapting to different device form factors
 - Clear visual hierarchy emphasizing current context
 - Sub-navigation within each goal section for related tasks
 
 [2025-05-08 13:08:30] - Added Jobs-to-be-Done Navigation Pattern that documents the implementation approach for goal-oriented navigation structure with responsive layout components
+[2025-05-09 17:01:00] - Updated to User-Centric Navigation Pattern with specific details on the 5-section structure and responsive positioning (bottom for mobile, header for desktop)
