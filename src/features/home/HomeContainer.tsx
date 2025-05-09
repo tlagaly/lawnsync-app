@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './HomeContainer.css';
 import WeatherCard from '../dashboard/components/WeatherCard';
-import NotificationBadge from '../dashboard/components/NotificationBadge';
-import NotificationCenter from '../dashboard/components/NotificationCenter';
 import QuickActions from '../dashboard/components/QuickActions';
 import TaskList from '../dashboard/components/TaskList';
 import WateringScheduleCard from '../dashboard/components/WateringScheduleCard';
@@ -26,9 +24,6 @@ const HomeContainer: React.FC = () => {
   // State for tasks
   const [tasks, setTasks] = useState<ScheduledTask[]>([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(true);
-  
-  // State for notification center visibility
-  const [showNotifications, setShowNotifications] = useState(false);
   
   // Load user data from mock data (would be replaced with API calls in production)
   const userData = mockUserData;
@@ -67,16 +62,6 @@ const HomeContainer: React.FC = () => {
     fetchTasks();
   }, [userData.location]);
 
-  // Handle notification badge click
-  const handleNotificationClick = () => {
-    setShowNotifications(true);
-  };
-
-  // Handle closing the notification center
-  const handleCloseNotifications = () => {
-    setShowNotifications(false);
-  };
-
   // Render only first 3 active tasks for the task summary
   const getTaskSummary = () => {
     return tasks.filter(task => !task.isCompleted).slice(0, 3);
@@ -91,9 +76,6 @@ const HomeContainer: React.FC = () => {
             <p className="subtitle">
               Location: {userData.location} • Lawn Type: {userData.lawnType}
             </p>
-          </div>
-          <div className="notification-wrapper">
-            <NotificationBadge onClick={handleNotificationClick} />
           </div>
         </div>
       </div>
@@ -138,11 +120,6 @@ const HomeContainer: React.FC = () => {
           <QuickActions />
         </section>
       </div>
-      
-      {/* Notification Center (appears when triggered) */}
-      {showNotifications && (
-        <NotificationCenter onClose={handleCloseNotifications} />
-      )}
     </div>
   );
 };

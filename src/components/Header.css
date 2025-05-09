@@ -28,6 +28,60 @@
   align-items: center;
 }
 
+.header-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.nav-button {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  color: var(--inactive-color, #6c757d);
+  text-decoration: none;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.nav-button:hover {
+  color: var(--hover-color, #0056b3);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.nav-button.active {
+  color: var(--active-color, #007bff);
+  font-weight: 600;
+  position: relative;
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.nav-icon {
+  margin-right: 0.5rem;
+  font-size: 1.25rem;
+  display: inline-block;
+}
+
+.nav-icon.home::before { content: '🏠'; }
+.nav-icon.tasks::before { content: '📋'; }
+.nav-icon.assistant::before { content: '🤖'; }
+.nav-icon.lawn::before { content: '🌱'; }
+.nav-icon.plant-id::before { content: '🔍'; }
+
+.nav-label {
+  display: inline-block;
+  font-size: 0.9rem;
+}
+
 .header-right {
   display: flex;
   align-items: center;
@@ -268,6 +322,19 @@
   color: #4CAF50;
   text-decoration: none;
   font-size: 0.9rem;
+}
+
+/* Tablet and mobile adjustments */
+@media (max-width: 1023px) {
+  /* Hide header navigation on tablet and mobile */
+  .header-center {
+    display: none;
+  }
+  
+  /* Ensure header layout works without center navigation */
+  .header-content {
+    justify-content: space-between;
+  }
 }
 
 /* Mobile adjustments */

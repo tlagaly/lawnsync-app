@@ -1,24 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import NotificationCenter from '../features/dashboard/components/NotificationCenter';
 import './Header.css';
 
 /**
  * Header Component
- * 
+ *
  * Provides the application header with:
  * - App logo and name on the left side
- * - Notifications icon and user dropdown on the right
+ * - Navigation links as a button group in the center (desktop only)
+ * - Notifications icon (slide-in drawer) and user dropdown on the right
  */
 const Header: React.FC = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
+  const [showNotificationDrawer, setShowNotificationDrawer] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const location = useLocation();
   
-  // Mock notifications
-  const notifications = [
-    { id: 1, text: 'Time to water your lawn', read: false, time: '2 hours ago' },
-    { id: 2, text: 'Weekly lawn report is ready', read: true, time: '1 day ago' },
+  // Navigation items - same as in MainNavigationBar
+  const navItems = [
+    { path: '/home', label: 'Home', icon: 'home' },
+    { path: '/tasks-projects', label: 'Tasks & Projects', icon: 'tasks' },
+    { path: '/assistant', label: 'AI Assistant', icon: 'assistant' },
+    { path: '/my-lawn', label: 'My Lawn', icon: 'lawn' },
+    { path: '/plant-id', label: 'Plant ID', icon: 'plant-id' }
   ];
   
-  const unreadCount = notifications.filter(n => !n.read).length;
+  // Determine if a nav item is active
+  const isActive = (path: string) => {
+    return location.pathname.startsWith(path);
+  };
+  
+  // Handle window resize for responsive design
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  // Mock notifications data for badge
+  const unreadCount = 1; // This would come from a notification service in a real app
   
   // Mock user data
   const user = {
@@ -29,12 +53,16 @@ const Header: React.FC = () => {
   
   const toggleUserMenu = () => {
     setShowUserMenu(!showUserMenu);
-    if (showNotifications) setShowNotifications(false);
+    if (showNotificationDrawer) setShowNotificationDrawer(false);
   };
   
-  const toggleNotifications = () => {
-    setShowNotifications(!showNotifications);
+  const toggleNotificationDrawer = () => {
+    setShowNotificationDrawer(!showNotificationDrawer);
     if (showUserMenu) setShowUserMenu(false);
+  };
+  
+  const closeNotificationDrawer = () => {
+    setShowNotificationDrawer(false);
   };
   
   return (
@@ -47,10 +75,27 @@ const Header: React.FC = () => {
           </div>
         </div>
         
+        {isDesktop && (
+          <div className="header-center">
+            <nav className="header-nav">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`nav-button ${isActive(item.path) ? 'active' : ''}`}
+                >
+                  <span className={`nav-icon ${item.icon}`}></span>
+                  <span className="nav-label">{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+        )}
+        
         <div className="header-right">
-          <button 
-            className="notifications-button" 
-            onClick={toggleNotifications}
+          <button
+            className="notifications-button"
+            onClick={toggleNotificationDrawer}
             aria-label="Notifications"
           >
             <span role="img" aria-hidden="true">🔔</span>
@@ -58,8 +103,8 @@ const Header: React.FC = () => {
           </button>
           
           <div className="user-menu-container">
-            <button 
-              className="user-menu-button" 
+            <button
+              className="user-menu-button"
               onClick={toggleUserMenu}
               aria-label="User menu"
             >
@@ -105,37 +150,14 @@ const Header: React.FC = () => {
                 </ul>
               </div>
             )}
-            
-            {showNotifications && (
-              <div className="notifications-dropdown">
-                <div className="notifications-header">
-                  <h3>Notifications</h3>
-                  <button className="mark-as-read">Mark all as read</button>
-                </div>
-                
-                <ul className="notifications-list">
-                  {notifications.map(notification => (
-                    <li 
-                      key={notification.id} 
-                      className={`notification-item ${!notification.read ? 'unread' : ''}`}
-                    >
-                      <span className="notification-icon">🔔</span>
-                      <div className="notification-content">
-                        <p className="notification-text">{notification.text}</p>
-                        <p className="notification-time">{notification.time}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                
-                <div className="notifications-footer">
-                  <a href="/notifications">View all notifications</a>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
+      
+      {/* Notification Slide-in Drawer */}
+      {showNotificationDrawer && (
+        <NotificationCenter onClose={closeNotificationDrawer} />
+      )}
     </header>
   );
 };
