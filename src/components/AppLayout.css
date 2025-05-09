@@ -7,6 +7,18 @@
   background-color: #f7fafc;
 }
 
+/* Nav wrapper contains both header and main navigation */
+.nav-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  width: 100%;
+}
+
 .app-content {
   flex: 1;
   padding-bottom: 70px; /* Space for mobile navigation */
@@ -21,5 +33,24 @@
   
   .app-content {
     padding-bottom: 20px;
+  }
+  
+  /* Make sure header and nav are side by side */
+  .nav-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Remove individual fixed positioning from header */
+  .app-header {
+    position: relative;
+    top: unset;
+    box-shadow: none;
+  }
+  
+  /* Update main nav positioning */
+  .main-nav.desktop {
+    position: relative;
+    top: unset;
   }
 }

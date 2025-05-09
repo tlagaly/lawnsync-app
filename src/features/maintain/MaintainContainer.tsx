@@ -1,65 +1,91 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PageLayout from '../../components/PageLayout';
+import TaskScheduler from './components/TaskScheduler';
+import WateringConfigView from './components/WateringConfigView';
+import SeasonalTasks from './components/SeasonalTasks';
+import RoutineCare from './components/RoutineCare';
 import './MaintainContainer.css';
 
 /**
  * MaintainContainer component
- * 
+ *
  * This section focuses on routine lawn care and maintenance tasks.
- * It includes mowing schedule, watering plan, fertilization calendar,
- * and seasonal tasks management.
+ * It includes task scheduling, watering configuration, seasonal tasks,
+ * and a routine care dashboard with status indicators.
  */
 const MaintainContainer: React.FC = () => {
-  // Placeholder for sub-navigation
+  // State to track which section is active
+  const [activeSection, setActiveSection] = useState<'schedule' | 'watering' | 'seasonal' | 'dashboard'>('dashboard');
+
+  // Handle navigation click
+  const handleNavClick = (section: 'schedule' | 'watering' | 'seasonal' | 'dashboard') => {
+    setActiveSection(section);
+  };
+
+  // Sub-navigation with active state based on activeSection
   const subNavigation = (
     <div className="maintain-nav">
-      <button className="nav-button active">Mowing Schedule</button>
-      <button className="nav-button">Watering Plan</button>
-      <button className="nav-button">Fertilization</button>
-      <button className="nav-button">Seasonal Tasks</button>
+      <button
+        className={`nav-button ${activeSection === 'dashboard' ? 'active' : ''}`}
+        onClick={() => handleNavClick('dashboard')}
+      >
+        Dashboard
+      </button>
+      <button
+        className={`nav-button ${activeSection === 'schedule' ? 'active' : ''}`}
+        onClick={() => handleNavClick('schedule')}
+      >
+        Task Schedule
+      </button>
+      <button
+        className={`nav-button ${activeSection === 'watering' ? 'active' : ''}`}
+        onClick={() => handleNavClick('watering')}
+      >
+        Watering Plan
+      </button>
+      <button
+        className={`nav-button ${activeSection === 'seasonal' ? 'active' : ''}`}
+        onClick={() => handleNavClick('seasonal')}
+      >
+        Seasonal Tasks
+      </button>
     </div>
   );
 
-  // Placeholder for contextual actions
+  // Contextual action button for adding tasks
   const contextualActions = (
-    <button className="fab-button" aria-label="Add new task">
-      <span className="icon add"></span>
+    <button
+      className="fab-button"
+      aria-label="Add new task"
+      onClick={() => handleNavClick('schedule')}
+    >
+      <span className="icon add">+</span>
     </button>
   );
 
+  // Render the active component based on selected section
+  const renderActiveComponent = () => {
+    switch (activeSection) {
+      case 'schedule':
+        return <TaskScheduler />;
+      case 'watering':
+        return <WateringConfigView />;
+      case 'seasonal':
+        return <SeasonalTasks />;
+      case 'dashboard':
+      default:
+        return <RoutineCare />;
+    }
+  };
+
   return (
-    <PageLayout 
-      title="Maintain" 
+    <PageLayout
+      title="Maintain"
       subNavigation={subNavigation}
       contextualActions={contextualActions}
     >
-      <div className="content-placeholder">
-        <h2>Maintenance Schedule</h2>
-        <p>Plan and track your regular lawn care tasks.</p>
-        
-        <div className="schedule-view">
-          <div className="schedule-header">
-            <h3>Upcoming Maintenance Tasks</h3>
-            <div className="view-toggle">
-              <button className="toggle-button active">Calendar</button>
-              <button className="toggle-button">List</button>
-            </div>
-          </div>
-          
-          <div className="calendar-placeholder">
-            <p>Your maintenance calendar will appear here.</p>
-            <p>No tasks scheduled yet.</p>
-            <button className="action-button">
-              <span className="icon-calendar"></span>
-              Add First Task
-            </button>
-          </div>
-        </div>
-        
-        <div className="weather-advice">
-          <h3>Weather-Based Recommendations</h3>
-          <p>Weather information will influence your maintenance schedule.</p>
-        </div>
+      <div className="maintain-container">
+        {renderActiveComponent()}
       </div>
     </PageLayout>
   );

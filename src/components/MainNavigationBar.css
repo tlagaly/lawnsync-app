@@ -14,12 +14,10 @@
 
 /* Desktop Navigation Styles */
 .main-nav.desktop {
-  position: fixed;
-  top: 60px; /* Position below header */
-  left: 0;
-  right: 0;
+  width: 100%;
   height: auto; /* Allow height to be determined by content */
   z-index: 99;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .desktop-nav {
@@ -27,8 +25,7 @@
   justify-content: space-around;
   align-items: center;
   padding: 0.75rem 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
   height: auto; /* Allow proper height */
   min-height: 40px; /* Ensure minimum height */
 }

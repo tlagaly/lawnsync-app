@@ -26,16 +26,19 @@ const AppLayout: React.FC = () => {
 
   return (
     <div className="app-layout">
-      {/* Header with app logo and user menu */}
-      <Header />
+      {/* Navigation wrapper to combine header and nav on desktop */}
+      <div className="nav-wrapper">
+        {/* Header with app logo and user menu */}
+        <Header />
+        
+        {/* Main Navigation Bar - fixed at the bottom for mobile, top for desktop */}
+        <MainNavigationBar activeSection={getActiveSection()} />
+      </div>
       
       {/* Main content area */}
       <main className="app-content">
         <Outlet />
       </main>
-      
-      {/* Main Navigation Bar - fixed at the bottom for mobile, top for desktop */}
-      <MainNavigationBar activeSection={getActiveSection()} />
     </div>
   );
 };
