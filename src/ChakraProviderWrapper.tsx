@@ -6,11 +6,10 @@ interface ChakraProviderWrapperProps {
 }
 
 /**
- * ChakraProviderWrapper component that works around Chakra UI 3.17.0 compatibility issues
+ * ChakraProviderWrapper component that applies basic styling for the app
  *
- * This implementation uses a simple wrapper that applies basic styling without
- * depending on the Chakra UI provider directly. This allows components to render
- * correctly while avoiding TypeScript errors with the Chakra UI API.
+ * This simplified wrapper avoids Chakra UI compatibility issues by using
+ * basic HTML and CSS instead of the Chakra Provider.
  */
 const ChakraProviderWrapper: React.FC<ChakraProviderWrapperProps> = ({ children }) => {
   // Apply basic theme variables as CSS variables

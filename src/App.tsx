@@ -40,8 +40,9 @@ function App() {
   }
 
   return (
-    <div className="lawnsync-app">
-      <Routes>
+    <ChakraProviderWrapper>
+      <div className="lawnsync-app">
+        <Routes>
         {/* Redirect root to onboarding or dashboard based on auth state */}
         <Route
           path="/"
@@ -93,9 +94,10 @@ function App() {
         />
         
         {/* Fallback for unknown routes */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </div>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
+    </ChakraProviderWrapper>
   );
 }
 
