@@ -1,0 +1,4 @@
+# Encrypt all files in memory-bank directory
+memory-bank/** filter=git-crypt diff=git-crypt
+# Ensure .gitattributes is not encrypted
+.gitattributes !filter !diff

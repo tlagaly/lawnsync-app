@@ -23,6 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
-# Memory Bank
-/memory-bank
+# Memory Bank (encrypted with git-crypt)
+# /memory-bank  - no longer ignored so it can be tracked and encrypted
 projectBrief.md
+
+# git-crypt keys - VERY IMPORTANT to keep these private!
+.git-crypt-keys/
