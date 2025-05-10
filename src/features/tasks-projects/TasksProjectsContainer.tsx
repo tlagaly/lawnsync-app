@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './TasksProjectsContainer.css';
 import TaskScheduler from '../maintain/components/TaskScheduler';
 import SeasonalTasks from '../maintain/components/SeasonalTasks';
+import AIProjectPlannerForm from './components/AIProjectPlannerForm';
 import colors from '../../theme/foundations/colors';
 import { getScheduledTasks } from '../../lib/taskSchedulerService';
 import type { ScheduledTask } from '../../types/scheduler';
@@ -148,6 +149,7 @@ const NewProjectForm: React.FC<NewProjectFormProps> = ({ onSubmit, onCancel }) =
 const TasksProjectsContainer: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'daily' | 'seasonal' | 'custom'>('daily');
   const [showNewProjectForm, setShowNewProjectForm] = useState(false);
+  const [showAIProjectPlanner, setShowAIProjectPlanner] = useState(false);
   const [allTasks, setAllTasks] = useState<ScheduledTask[]>([]);
   const [customProjects, setCustomProjects] = useState<any[]>([
     {
@@ -176,19 +178,30 @@ const TasksProjectsContainer: React.FC = () => {
   }, []);
   
   // Handle creating a new custom project
-  const handleCreateProject = (projectData: {name: string; description: string; timeframe: string}) => {
-    const newProject = {
-      id: `custom-${customProjects.length + 1}`,
-      title: projectData.name,
-      description: projectData.description,
-      timeframe: projectData.timeframe,
-      completedTasks: 0,
-      totalTasks: 0,
-      tasks: []
-    };
+  const handleCreateProject = (projectData: any) => {
+    // If data coming from the standard form
+    if (!projectData.id) {
+      const newProject = {
+        id: `custom-${customProjects.length + 1}`,
+        title: projectData.name,
+        description: projectData.description,
+        timeframe: projectData.timeframe,
+        completedTasks: 0,
+        totalTasks: 0,
+        tasks: []
+      };
+      
+      setCustomProjects([...customProjects, newProject]);
+    }
+    // If data coming from the AI Project Planner
+    else {
+      setCustomProjects([...customProjects, projectData]);
+    }
     
-    setCustomProjects([...customProjects, newProject]);
+    // Close any open forms
     setShowNewProjectForm(false);
+    setShowAIProjectPlanner(false);
+    
     // Switch to the custom projects tab to show the new project
     setActiveTab('custom');
   };
@@ -248,13 +261,21 @@ const TasksProjectsContainer: React.FC = () => {
           <div className="custom-projects-container">
             <div className="section-header">
               <h2>Custom Lawn Projects</h2>
-              {!showNewProjectForm && (
-                <button
-                  className="new-project-button"
-                  onClick={() => setShowNewProjectForm(true)}
-                >
-                  + New Project
-                </button>
+              {!showNewProjectForm && !showAIProjectPlanner && (
+                <div className="project-button-group">
+                  <button
+                    className="new-project-button"
+                    onClick={() => setShowNewProjectForm(true)}
+                  >
+                    + New Project
+                  </button>
+                  <button
+                    className="ai-project-button"
+                    onClick={() => setShowAIProjectPlanner(true)}
+                  >
+                    <span className="ai-icon">✨</span> Create with AI
+                  </button>
+                </div>
               )}
             </div>
             
@@ -292,6 +313,13 @@ const TasksProjectsContainer: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* AI Project Planner Form */}
+      <AIProjectPlannerForm
+        isOpen={showAIProjectPlanner}
+        onClose={() => setShowAIProjectPlanner(false)}
+        onProjectCreated={handleCreateProject}
+      />
     </div>
   );
 };

@@ -165,7 +165,12 @@
   border-radius: 3px;
 }
 
-/* New Project Button & Form */
+/* Project Buttons & Forms */
+.project-button-group {
+  display: flex;
+  gap: 0.75rem;
+}
+
 .new-project-button {
   background-color: #4299e1;
   color: white;
@@ -180,6 +185,29 @@
 
 .new-project-button:hover {
   background-color: #3182ce;
+}
+
+.ai-project-button {
+  background-color: #5a67d8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ai-project-button:hover {
+  background-color: #4c51bf;
+}
+
+.ai-icon {
+  font-size: 0.9rem;
 }
 
 .new-project-form-container {
