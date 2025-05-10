@@ -1,5 +1,4 @@
 import React from 'react';
-import MainNavigationBar from './MainNavigationBar';
 import './PageLayout.css';
 
 interface PageLayoutProps {
@@ -12,7 +11,8 @@ interface PageLayoutProps {
 /**
  * PageLayout component
  * Provides a consistent layout structure for all pages in the application
- * Includes header, sub-navigation, main content, and contextual action areas
+ * Includes title header, sub-navigation, main content, and contextual action areas
+ * Navigation is now handled by the AppLayout component to avoid duplication
  */
 const PageLayout: React.FC<PageLayoutProps> = ({
   title,
@@ -22,8 +22,6 @@ const PageLayout: React.FC<PageLayoutProps> = ({
 }) => {
   return (
     <div className="page-layout">
-      <MainNavigationBar />
-      
       <div className="page-content">
         <header className="page-header">
           <h1>{title}</h1>
